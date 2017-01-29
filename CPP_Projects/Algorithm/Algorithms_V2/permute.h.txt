@@ -1,0 +1,71 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class permute
+{
+
+        string src;            
+        vector <string> vec;    
+        vector<string>::iterator it;
+    
+        string insertati(string t, int i, int pos)
+        {
+                string temp =  string(t);
+                temp.insert(i, 1, src[pos]);    
+                return temp;
+        }
+
+        void perm(string t, int pos=0)
+        {
+                if (t.length() == 0)
+                {
+                        string dest = insertati(t, 0, pos);
+                        perm(dest, pos+1);
+                }
+                else
+                {
+                        for (int i=0; i <= t.length(); i++)
+                        {
+                                string dest = insertati(t, i, pos);        
+                                if (dest.length() < src.length())
+                                        perm(dest,pos+1);
+                                else
+                                        vec.push_back(dest);
+                        }
+                }
+         }
+public:
+    
+    permute(string t)
+    {
+        src = t;
+        perm("");
+        sort(vec.begin(), vec.end());
+        it = vec.begin();
+    }
+    
+    string getNext()
+    {
+        if (it != vec.end())
+            return *it++;
+        else
+            return "end";        
+    }
+    
+   
+};
+
+int main()
+{
+    permute p("iammad");           
+    
+    string t;
+    while ( (t = p.getNext()) != "end")
+        cout << t << endl;
+    
+    return 0;
+}

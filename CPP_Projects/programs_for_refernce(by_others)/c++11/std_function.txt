@@ -1,0 +1,84 @@
+http://codereview.stackexchange.com/questions/43423/stdfunction-implementation
+
+template < typename > class function;
+
+template < typename _Ret, typename... _Args > class function<_Ret(_Args...)>
+{
+public:
+    typedef _Ret result_type;
+    typedef function<result_type(_Args...)> _Myt;
+    typedef result_type(*pointer)(_Args...);
+
+    function()
+        : _f_ptr(nullptr)
+    {
+    }
+
+    template < typename _Fn_Ty > function(_Fn_Ty &&_Fn)
+        : _f_ptr(reinterpret_cast<pointer>(_Fn))
+    {
+    }
+
+    function(pointer &&_Fn)
+        : _f_ptr(_Fn)
+    {
+    }
+
+    function(const _Myt &_Rhs)
+        : _f_ptr(_Rhs.f_ptr)
+    {
+    }
+
+    function(_Myt &&_Rhs)
+        : _f_ptr(_Rhs.f_ptr)
+    {
+    }
+
+    ~function()
+    {
+    }
+
+    _Myt &assign(pointer &&_Fn)
+    {
+        _f_ptr = _Fn;
+        return *this;
+    }
+
+    _Myt &operator=(pointer &&_Fn)
+    {
+        return assign(_Fn);
+    }
+
+    template < typename _Fn_Ty > _Myt &assign(_Fn_Ty &&_Fn)
+    {
+        _f_ptr = reinterpret_cast<pointer>(_Fn);
+        return *this;
+    }
+
+    template < typename _Fn_Ty > _Myt &operator=(_Fn_Ty &&_Fn)
+    {
+        return assign<_Fn_Ty>(_Fn);
+    }
+
+    result_type operator()(_Args... _Arguments)
+    {
+        if (_f_ptr == nullptr)
+        {
+            throw std::exception("nullptr found instead of function");
+        }
+        return _f_ptr(_Arguments...);
+    }
+
+    pointer &ptr() const
+    {
+        return _f_ptr;
+    }
+
+    operator pointer &() const
+{
+    return _f_ptr;
+}
+private:
+    pointer _f_ptr;
+};
+

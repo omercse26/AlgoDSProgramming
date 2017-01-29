@@ -1,0 +1,289 @@
+#include <iostream>
+#include <string>
+#include <stack>
+using namespace std;
+
+class Tree
+{
+    struct Node
+    {
+        string data;
+        Node* left;
+        Node* right;
+        
+        Node(string s): data(s), left(nullptr), right(nullptr)
+        {
+     
+        }
+        
+        ~Node()
+        {
+            delete left;
+            delete right;
+            left = right = nullptr;
+        }
+    };
+    
+    Node *root;
+public:
+    Tree()
+    {
+        root = nullptr;
+    }
+    
+    void insert(string s)
+    {
+        Node *node = new Node(s);
+        
+        if (root == nullptr)
+        {
+            root = node;
+        }
+        else
+        {
+            Node* curr = root, *prev = nullptr;
+            
+            while(1)
+            {                
+                if (node->data < curr->data)                
+                {
+                    if (curr->left)
+                        curr = curr->left;
+                    else
+                    {
+                        curr->left=node;
+                        return;
+                    }
+                    
+                }
+                else 
+                {                       
+                    if (curr->right)
+                        curr = curr->right;
+                    else
+                    {
+                        curr->right=node;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    void print()
+    {
+        printO(root);
+    }
+    
+    void print(Node *n)
+    {
+        if (n)
+        {
+            print(n->left);
+            cout << n->data << endl;
+            print(n->right);
+        }
+    }
+    
+    void printC (Node *n)
+    {
+        Node *c = n;
+        stack<Node*> st;
+        //st.push(n);        
+        
+        while (1)
+        {                        
+            while (c)
+            {                
+                st.push(c);
+                c = c->left;
+            } 
+            
+            if (st.empty())
+                return;
+            
+            c = st.top();
+            st.pop();
+            cout << c->data << endl;
+             
+            c = c->right;            
+        }
+    }
+    
+    void printP(Node* n)
+    {
+        Node *c = n;        
+        stack<Node*> st;
+        
+        while(1)
+        {                        
+            while (c)
+            {        
+                cout << c->data << endl;
+                st.push(c);
+                c = c->left;
+            } 
+            
+            if (st.empty())
+                return;
+            
+            c = st.top();
+            st.pop();
+            c = c->right;
+            
+        }
+    }
+    
+    void printO(Node* n)
+    {
+        struct N
+        {
+            Node* a;
+            bool rightVisited;
+            
+            N(Node* b) : a(b), rightVisited(false) {}
+        };
+        Node *c = n;
+        stack<N> st;
+        while (1)
+        {
+            while (c)
+            {
+                cout << "pushing " << c->data << endl;
+                st.push(N(c));
+                c = c->left;
+            }
+            
+            if (st.empty())
+                break;
+            
+            N a = st.top();                       
+            st.pop();
+            
+            if (a.rightVisited == false)
+            {
+                cout << "right not visited pushing again " << a.a->data << endl;
+                a.rightVisited = true;
+                st.push(a);
+                 c =  (a.a)->right;
+            }
+            else
+            {
+             cout  << "visited both left and right DONE: " << (a.a)->data << endl;
+            }                                       
+        }
+    }
+    
+    bool bothnull(Node* n)
+    {
+        if (n->left == nullptr && n->right == nullptr)
+            return true;
+        return false;
+    }
+    void del(string s)
+    {
+        del(s, root);
+    }
+        
+    void del(string s, Node* curr)
+    {       
+        while (curr)
+        {
+            if (s < curr->data)
+            {
+                //cout << "Left" << endl;       
+                curr = curr->left;
+            }
+            else if (s > curr->data)
+            {
+                //cout << "Right" << endl;       
+                curr = curr->right;
+            }
+            else
+            {
+                if (curr->left == nullptr && curr->right == nullptr)
+                {
+                    //cout << "Both are Null" << endl;
+                    delete curr;
+                    return;
+                }
+                else if (curr->left == nullptr)
+                {
+                    //cout << "Left is Null" << endl;
+                    string temp = curr->right->data;
+                    curr->data = curr->right->data;
+                    
+                    if (bothnull(curr->right))
+                    {                        
+                        del (temp, curr->right);
+                        curr->left = curr->right = nullptr;
+                        
+                    }
+                    else
+                    {
+                        del (temp, curr->right);
+                    }
+                    return;
+                }
+                else if (curr->right == nullptr)
+                {
+                    //cout << "Right is Null" << endl;
+                    string temp = curr->left->data;
+                    curr->data = curr->left->data;
+                    
+                    if (bothnull (curr->left))
+                    {
+                        del (temp, curr->left);
+                        curr->left = curr->right = nullptr;
+                    }
+                    else
+                    {
+                        del (temp, curr->left);
+                    }
+                    return;
+                }
+                else
+                {
+                    //cout << "Not Null" << endl;                      
+                    Node *temp = curr->left, *prev = nullptr;
+                    while (temp->right)
+                    {
+                        prev = temp;
+                        temp = temp->right;                        
+                    }
+                    string t;
+                    t = temp->data;
+                    curr->data = temp->data;
+                    if (bothnull(temp))
+                    {
+                        del(t, temp);
+                        prev->left = prev->right = nullptr;
+                    }
+                    else
+                        del(t,temp);
+                    return;
+                }
+            }
+                
+        }
+    }
+};
+
+int main()
+{
+    Tree t;    
+    string a("tech"), b("grows"), c("faster"), d("than"), e("the"), f("universe");
+    t.insert(a);
+    t.insert(b);
+    t.insert(c);
+    t.insert(d);
+    t.insert(e);
+    t.insert(f);
+    
+    t.print();
+    
+    //t.del(string("grows"));
+    //t.del(string("the"));
+    //t.print();
+    
+}

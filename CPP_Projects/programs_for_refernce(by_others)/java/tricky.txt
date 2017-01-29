@@ -1,0 +1,380 @@
+In java, There are two different ways that can be used to copy an object:
+1.shallow copy and
+2.deep copy
+ 
+What is shallow copy in java
+•A shallow copy would copy the object without any of its contents or data, In copied object all the variables are passed by reference from the original object.
+•Remeber that, In shallow copy, Copied object and Original object refer to the same data in memory.
+•Hence modifying the state of the original object would also modify the state of the copied object too.
+•By default, when you call the super.clone() method against an object, It would perform a shallow copy.
+ 
+shallow copy example in java
+
+/**
+  * Overrides Object's clone method to create a shallow copy
+  *
+  * @return
+  */
+ public Object shallowCopyClone() {
+     try {
+         return super.clone();
+     } catch (CloneNotSupportedException ex) {
+         return null;
+     }
+ }
+
+What is deep copy in java
+•The second type of copy, Deep-copy copies the object including all the contents / states.
+•Hence each object refers to a different space in memory and modifying one object will not affect the other.
+•Remember that to make an exact copy of an object (deep copy), you must serialize the object.
+ 
+deep copy example in java
+
+/**
+  * Overrides Object's clone method to create a deep copy
+  *
+  * @return
+  */
+ public Object clone() {
+     Object obj = null;
+     try {
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         ObjectOutputStream oos = new ObjectOutputStream(baos);
+         oos.writeObject(this);
+         oos.close();
+         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+         ObjectInputStream ois = new ObjectInputStream(bais);
+         obj = ois.readObject();
+         ois.close();
+     } catch (IOException e) {
+         e.printStackTrace();
+     } catch (ClassNotFoundException cnfe) {
+         cnfe.printStackTrace();
+     }
+     return obj;
+ }
+•The Object class implements the clone() method And by default, the Object class’s clone() method is protected.
+•To make an object cloneable, you must implement the Cloneable interface and also override the default clone() method.
+•You can make a deep copy of an object by serializing & deserializing it using ByteArrayOutputStream & ByteArrayInputStream classes respectively, Means you need to write the object to an output stream and then read it back via an input stream.
+•These steps are shown in the above clone() method.
+•Here the object is written to a ByteArrayOutputStream and then It's read back using a ByteArrayInputStream.
+•Once this occurred, the object has been serialized and that creates the deep copy for any object.
+•So now, In order to make a deep copy of an object, simply just call that object’s overridden clone() method!!
+ 
+Difference between shallow and deep copy in java with example
+
+
+
+Shallow copy
+
+Deep copy in java
+
+
+
+
+A shallow copy would copy the object without any of its contents or data, In copied object all the variables are passed by reference from the original object.
+
+Deep copy copies the object including all the contents / states.
+
+
+
+In shallow copy, Copied object and Original object refer to the same data in memory.
+
+In deep copy, Copied object and Original object refer to the different data in memory having same value / state.
+
+
+
+In shallow copy, Modifying the state of the original object would also modify the state of the copied object too.
+
+In Deep copy, Modifying the state of the original object would not modify the state of the copied object.
+
+
+
+You need to implement Cloneable interface, You can override the  clone() method or you can you super.clone() also.
+
+You need to implement Cloneable & Serializable interface, You also have to override the  clone() method to write your deep cloning logic.
+
+ 
+ Question 1 : Why wait and notify method are in Object class ?
+
+Answer : 
+•Actually these methods are used by threads to acquire and release lock / monitor of the object.
+•In multi threaded program, You can have any object as your shared object, On which current executing thread would acquire a lock / monitor first & then execute further.
+•wait() method causes the current thread to wait until :?It owns the monitor, In other words until 
+?Another thread invokes the notify() method or the notifyAll() method for this object (shared object).
+
+•notify() & notifyAll() methods releases ownership of the lock / monitor and Notifies threads waiting on this object's monitor, The thread then waits until it can re-obtain ownership of the monitor and resumes execution.
+•As these methods operates of the common property ( lock / monitor property ) of any object, They are part of Object class not the Thread class.
+ 
+--------------------------------------------------------------------------------
+
+Question 2 : ?How to catch exception from thread in java ?
+
+Answer : 
+•In Java, To facilitate parallel-execution or concurrency, Each thread is having their own separate memory page / call stack internally apart from the main or parent thread.
+•So you can't catch exception of Thread-A in Thread-B, In other words, Exception handling of threads should be done within the same thread itself.
+•Now, To have a general solution or common handler class for handling different threads exception, Java provides Thread.UncaughtExceptionHandler static interface.
+•You can write your concrete MyAppUncaughtExceptionHandler class or MyAppDefaultUncaughtExceptionHandler class for your application by implementing Thread.UncaughtExceptionHandler static interface.
+ 
+--------------------------------------------------------------------------------
+
+Question 3 : What is the difference between ThreadLocal and volatile variables in java ?
+
+Answer : Following table contains the difference between volatile and thread-local variables in java :
+
+
+
+ThreadLocal variable
+
+volatile variable
+
+
+
+
+What is thread local variable:
+•A single instance of ThreadLocal can store different values for each thread independently.
+•Therefore, the value stored in a ThreadLocal instance is specific (local) to the current running thread and any other code logic running on the same thread will see the same value, but not the values set on the same instance by other threads.
+•ThreadLocal can be associated with Thread scope, all the code which is executed by Thread has access to ThreadLocal variables but two thread can not see each others ThreadLocal variable.
+•ThreadLocal creates separate copy of the same variable for each thread, Each thread will owns a separate copy of variable, such variables are called thread-local variables.
+ 
+
+What is volatile variable:
+•Each thread has its own stack, and so its own copy of variables it can access.
+•When the thread is created, it copies the value of all accessible variables in its own memory.
+•The volatile keyword is used to say to the jvm "Warning, this variable may be modified in an other Thread".
+ 
+
+
+
+How to create thread local variable?
+
+You can use ThreadLocal class to create thread local variables.
+ 
+
+How to create volatile variable?
+
+You can create volatile variable by prefixing volatile keyword.
+ 
+
+
+
+Use of thread local variable :
+•ThreadLocal variables are typically private static fields in classes, Usually associates state with a thread (e.g., a user ID / Transaction ID).
+•ThreadLocal variables are very useful to create TransactionManager for transaction support for your application.
+ 
+
+Use of volatile variable :
+•volatile can be used whenever you want a mutable variable to be accessed by multiple threads.
+•volatile boolean variable can be used as a flag to terminate a thread.
+ 
+
+
+
+Example:
+•TransactionManager for multi-threaded environment : 
+
+
+public class TransactionManager {
+
+   private static final ThreadLocal<String> context = new ThreadLocal<String>();
+
+   public static void startTransaction() {
+       //logic to start a transaction
+       //...
+       context.set(generatedId); 
+    }
+
+   public static String getTransactionId() {
+       return context.get();
+    }
+
+   public static void endTransaction() {
+       //logic to end a transaction
+       //…
+      context.remove();
+    }
+ }
+ 
+
+Example:
+•One common example for using volatile is to use a volatile boolean variable as a flag to terminate a thread.
+•If you've started a thread, and you want to be able to safely interrupt it from a different thread, you can have the thread periodically check a flag.
+•To stop it, set the flag to true.
+•By making the flag volatile, you can ensure that the thread that is checking it will see it has been set the next time it checks it without having to even use a synchronized block.
+
+public class Foo extends Thread {
+   private volatile boolean close = false;
+   public void run() {
+     while(!close) {
+       // do work
+     }
+   }
+   public void close() {
+     close = true;
+     // interrupt here if needed
+   }
+ }
+ 
+
+Some more explanation about volatile : ?
+•volatile has semantics for memory visibility.
+•Basically, the value of a volatile field becomes visible to all readers (other threads in particular) after a write operation completes on it.
+•Without volatile, readers could see some non-updated value.
+•Each thread has its own stack, and so its own copy of variables it can access.
+•When the thread is created, it copies the value of all accessible variables in its own memory.
+•The volatile keyword is used to say to the jvm "Warning, this variable may be modified in an other Thread".
+•Without this keyword the JVM is free to make some optimizations, like never refreshing those local copies in some threads.
+•The volatile force the thread to update the original variable for each variable.
+•The volatile keyword could be used on every kind of variable, either primitive or objects
+ 
+--------------------------------------------------------------------------------
+
+Question 4 : You have thread T1, T2 and T3, how will you ensure that thread T2 run after T1 and thread T3 run after T2 ?
+
+Answer :
+•This thread interview questions is mostly asked to check whether candidate is familiar with concept of "join" method or not.
+•Answer of this multi-threading questions is simple it can be achieved by using join method of Thread class.
+ 
+--------------------------------------------------------------------------------
+
+Question 5 : What is the difference between Process and Thread ?
+
+Answer :
+
+Process  :
+•Process is a self contained execution environment and it can be seen as a program or application.
+ 
+?Thread :
+•Thread is a single task of execution within the process, Thread can be also called lightweight process.
+•Java runtime environment runs as a single process which contains different classes and programs as sub-processes.
+•Thread requires less resources to create and exists in the process, thread shares the process resources.
+ 
+--------------------------------------------------------------------------------
+
+Question 6 : What is difference between user Thread and daemon Thread ?
+
+Answer :
+•When we create a Thread in java program, it’s known as user thread.
+•A daemon thread runs in background and doesn’t prevent JVM from terminating.
+•When there are no user threads running, JVM shutdown the program and quits.
+•A child thread created from daemon thread is also a daemon thread.
+ 
+--------------------------------------------------------------------------------
+
+Question 7 : What is race condition? How will you find and solve race condition ?
+
+Answer :
+
+Race Condition :
+•A race condition occurs when two or more threads can access shared data and they try to change it at the same time.
+•Because the thread scheduling algorithm can swap between threads at any time, you don't know the order in which the threads will attempt to access the shared data.
+•Hence the result of the change in data is dependent on the thread scheduling algorithm, i.e. both threads are 'RACING' to access / change the data.
+ 
+How to resolve race condition :
+•This problem often occur when one thread does a 'check-then-act'.
+ 
+For example,
+•"check" if the value is X, then "act" to do something that depends on the value being X and another thread does something to the value in between the "check" and the "act".
+•This means something like this :
+ 
+
+•The point being, y could be 10, or it could be anything, depending on whether another thread changed x in between the check and act.
+•You have no real way of knowing.
+•In order to prevent race conditions from occurring, you would typically put a lock around the shared data to ensure only one thread can access the data at a time.
+•This means something like this :
+ 
+
+
+--------------------------------------------------------------------------------
+
+Question 8 : What is atomic operation ?   What are atomic classes in Java Concurrency API ?
+
+Answer :
+•Atomic operations are performed in a single unit of task without interference from other operations.
+•Atomic operations are necessity in multi-threaded environment to avoid data inconsistency.
+•int++ is not an atomic operation  hence  by the time one threads read it’s value and increment it by one, other thread has read the older value leading to wrong result.
+ 
+To solve this issue,
+•We'll have to make sure that increment operation on count is atomic, we can do that using Synchronization but Java 5 java.util.concurrent.atomic provides wrapper classes for int and long that can be used to achieve this atomically without usage of Synchronization.
+ 
+--------------------------------------------------------------------------------
+
+Question 9 : Why we call start() method which in turns calls run() method, why not we directly call run() method ?
+
+Answer : 
+•When you call start() method it creates new Thread and execute code declared in run().
+•While directly calling run() method doesn’t create any new thread and execute code on same calling thread.
+ 
+--------------------------------------------------------------------------------
+
+Question 10 : What is Lock interface in Java Concurrency API ?   What are it’s benefits over synchronization ?
+
+Answer : 
+•Lock interface provide more extensive locking operations than can be obtained using synchronized methods and statements.
+•They allow more flexible structuring, may have quite different properties, and may support multiple associated Condition objects.
+ 
+The advantages of a lock are : 
+•It is possible to try to acquire the lock, but return immediately or after a timeout if the lock can’t be acquired.
+•It is possible to make them fair and  make thread more responsive to interruption while waiting on a Lock object.
+•It is possible to acquire and release locks in different scopes, and in different orders.
+ 
+--------------------------------------------------------------------------------
+
+Question 11 : How will you awake a blocked thread in java ?
+
+Answer : If thread is blocked on IO then I don't think there is a way to interrupt the thread, let me know if there is any, on the other hand if thread is blocked due to result of calling wait(), sleep() or join() method you can interrupt the thread and it will awake by throwing InterruptedException.
+
+--------------------------------------------------------------------------------
+ 
+Question 12 : What is Executors Framework ?
+
+Answer :
+•In Java 5, Executor framework was introduced with the java.util.concurrent.Executor interface.
+•The Executor framework is a framework for standardizing invocation, scheduling, execution, and control of asynchronous tasks according to a set of execution policies.
+•Creating a lot many threads with no bounds to the maximum threshold can cause application to run out of heap memory.
+•So, creating a ThreadPool is a better solution as a finite number of threads can be pooled and reused.
+•Executors framework facilitate process of creating Thread pools in java.
+ 
+--------------------------------------------------------------------------------
+
+Question 13 : What is Callable and Future ? 
+
+Answer :
+•Java 5 introduced java.util.concurrent.Callable interface in concurrency package that is similar to Runnable interface but it can return any Object and able to throw Exception.
+•Callable interface use Generic to define the return type of Object.
+•Executors class provide useful methods to execute Callable in a thread pool.
+•Since callable tasks run in parallel, we have to wait for the returned Object.
+•Callable tasks return java.util.concurrent.Future object.
+•Using Future we can find out the status of the Callable task and get the returned Object, It provides get() method that can wait for the Callable to finish and then return the result.
+ 
+--------------------------------------------------------------------------------
+
+Question 14 : What are Concurrent Collection Classes ?
+
+Answer :
+•Java Collection classes are fail-fast which means that if the Collection will be changed while some thread is traversing over it using iterator, the iterator.next() will throw ConcurrentModificationException.
+•Concurrent Collection classes support full concurrency of retrievals and adjustable expected concurrency for updates.
+•Major classes are : ?ConcurrentHashMap,
+?CopyOnWriteArrayList and
+?CopyOnWriteArraySet.
+
+ 
+--------------------------------------------------------------------------------
+
+Question 15 : What is Executors Class ?
+
+Answer :
+•Executors class provide utility methods for : ?Executor
+?ExecutorService
+?ScheduledExecutorService
+?ThreadFactory and
+?Callable classes.
+
+•Executors class can be used to easily create Thread Pool in java, also this is the only class supporting execution of Callable implementations.
+ 
+--------------------------------------------------------------------------------
+
+Question 16 : What is difference between CyclicBarrier and CountDownLatch in Java ?
+
+Answer : Main difference between both of them is that : "you can reuse CyclicBarrier even if Barrier is broken but you can not reuse CountDownLatch in Java".
+

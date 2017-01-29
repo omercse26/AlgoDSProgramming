@@ -1,0 +1,90 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Merge
+{
+    vector<int> arr;       
+    vector<int> sorted_arr;       
+    
+    void split(vector<int>& left, vector<int>& right, vector<int> vec)    
+    {
+        int mid = vec.size()/2;
+        vector<int>::iterator it;
+        
+        it = vec.begin()+mid;
+        left.assign(vec.begin(), it);
+        
+        it = vec.begin()+mid;
+        right.assign(it, vec.end());                
+    }
+    
+    
+    vector<int> merge(vector<int> left, vector<int> right)
+    {
+        vector<int> fin;        
+        vector<int>::iterator left_it = left.begin(), right_it=right.begin();
+        
+        for(; left_it != left.end() && right_it != right.end();)
+        {
+            if (*left_it <= *right_it)
+            {
+                fin.push_back(*left_it);
+                ++left_it;
+            }
+            else
+            {
+                fin.push_back(*right_it);
+                ++right_it;
+            }
+        }
+        
+        for (; left_it != left.end(); ++left_it)
+            fin.push_back(*left_it);
+        
+        for (; right_it != right.end(); ++right_it)
+            fin.push_back(*right_it);
+        
+        return fin;
+            
+    }
+    
+    vector<int> mergesort(vector<int>& vec)
+    {
+        if (vec.size() > 1)
+        {
+                vector<int> left, right;
+        
+                split(left, right, vec);                               
+        
+                vector<int> sorted_left  = mergesort(left);
+                vector<int> sorted_right = mergesort(right);            
+        
+                return merge(sorted_left, sorted_right);
+        }
+        else
+            return vec;
+        
+    }
+   
+public:    
+    Merge(int *a,size_t size)
+    {
+        arr = vector<int> (a, a+size);
+        sorted_arr = mergesort(arr);
+    }
+    
+    void print()
+    {
+        for (auto i: sorted_arr)
+            cout << i << endl;
+    }
+};
+
+int main()
+{
+    int a[] = {34,22,11,44,55,36};
+    Merge m(a, sizeof(a)/sizeof(int));
+    m.print();
+    return 0;
+}

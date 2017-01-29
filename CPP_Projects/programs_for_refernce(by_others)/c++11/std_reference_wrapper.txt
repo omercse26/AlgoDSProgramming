@@ -1,0 +1,74 @@
+#include <iostream>
+#include <vector>
+#include <functional>
+
+int main()
+{
+    std::vector<int> numbers = {1, 3, 0, -8, 5, 3, 1};
+
+    auto referenceWrapper = std::ref(numbers);
+    std::vector<int>& reference = numbers;
+
+    std::cout << reference[3]              << std::endl;
+    std::cout << referenceWrapper.get()[3] << std::endl; 
+              // I need to use get ^
+              // otherwise does not compile.
+    return 0;
+}
+If I understand it correctly, the implicit conversion does not apply to calling member functions. Is this an inherent limitation? Do I need to use the std::reference_wrapper::get so often?
+
+Another case is this:
+
+#include <iostream>
+#include <functional>
+
+int main()
+{
+    int a = 3;
+    int b = 4;
+    auto refa = std::ref(a);
+    auto refb = std::ref(b);
+    if (refa < refb)
+        std::cout << "success" << std::endl;
+
+    return 0;
+}
+This works fine, but when I add this above the main definition:
+
+template <typename T>
+bool operator < (T left, T right)
+{
+    return left.someMember();
+}
+The compiler tries to instantiate the template and forgets about implicit conversion and the built in operator.
+
+Is this behavior inherent or am I misunderstanding something crucial about the std::reference_wrapper?
+
+Answer:
+
+Class std::reference_wrapper<T> implements an explicit converting operator to T&:
+
+operator T& () const noexcept;
+and a more explicit getter:
+
+T& get() const noexcept;
+The implicit operator is called when a T (or T&) is required. For instance
+
+void f(some_type x);
+// ...
+std::reference_wrapper<some_type> x;
+some_type y = x; // the implicit operator is called
+f(x);            // the implicit operator is called and the result goes to f.
+However, sometimes a T is not necessarily expected and, in this case, you must use get. This happens, mostly, in automatic type deduction contexts. For instance,
+
+template <typename U>
+g(U x);
+// ...
+std::reference_wrapper<some_type> x;
+auto y = x; // the type of y is std::reference_wrapper<some_type>
+g(x);       // U = std::reference_wrapper<some_type>
+To get some_type instead of std::reference_wrapper<some_type> above you should do
+
+auto y = x.get(); // the type of y is some_type
+g(x.get());       // U = some_type
+Alternativelly the last line above could be replaced by g<some_type>(x);. However, for templatized operators (e.g. ostream::operator <<()) I believe you can't explicit the type.

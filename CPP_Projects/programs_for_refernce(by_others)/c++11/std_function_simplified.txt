@@ -1,0 +1,33 @@
+http://stackoverflow.com/questions/18453145/how-is-stdfunction-implemented
+struct callable_base {
+   virtual int operator()(double d) = 0;
+   virtual ~callable_base() {}
+};
+template <typename F>
+struct callable : callable_base {
+   F functor;
+   callable(F functor) : functor(functor) {}
+   virtual int operator()(double d) { return functor(d); }
+};
+class function_int_double {
+   std::unique_ptr<callable_base> c;
+public:
+   template <typename F>
+   function(F f) {
+      c.reset(new callable(f));
+   }
+   int operator()(double d) { return c(d); }
+// ...
+};
+
+// g++4.8
+int main() {
+   int value = 5;
+   typedef std::function<void()> fun;
+   fun f1 = [=]() mutable { std::cout << value++ << '\n' };
+   fun f2 = f1;
+   f1();                    // prints 5
+   fun f3 = f1;
+   f2();                    // prints 5
+   f3();                    // prints 6 (copy after first increment)
+}

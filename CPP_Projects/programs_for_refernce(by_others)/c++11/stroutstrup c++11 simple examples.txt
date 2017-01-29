@@ -1,0 +1,23 @@
+C++0x code:
+
+
+vector<string> v = { "Nygaard", "Kernighan", "Stepanov" };
+unordered_map<string,int> index;		// hash table
+for (auto p = v.begin(), p!=v.end; ++p) index[*p] = p->v.begin();
+
+enum class Traffic_light { red, yellow, green }; 
+enum class Alert_color { red, blue, green };
+int red = 2; 
+Alert_color c2 = red;		// error: no int to Alert_color conversion
+Alert_color c2 = Traffic_light::red;	// error
+Alert_color c2 = Alert_color::red;
+
+template<Container C>	// concepts
+      requires<Comparable<C::value_type>>
+            void sort(T&);
+sort(v);
+sort(red);	// error: int is not a Container
+vector<pair<string,int>> vp
+       = { {"Nygaard",75}, { "Kernighan",66 }, {"Stepanov",57} };
+
+sort(vp);	// error: pair<string,int> is not Comparable (no 

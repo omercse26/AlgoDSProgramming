@@ -1,0 +1,69 @@
+#include <iostream>
+#include <map>
+using namespace std;
+char a[] = "ABAVKOP";
+char h[] = "AAKXYP";
+int s = sizeof(a)-1;
+map<string, int> mp;
+map<string, int> mp1;
+int *j;
+std::string print(int i,char *chr, int sz)
+{
+    char *d = new char[sz];
+    int curr = sz-1;
+    int temp = i;
+    int cnt = 0;
+    
+    while (i && (curr>=0))
+    {        
+        if (i & 1)
+            j[curr] = 1;
+        else
+            j[curr] = 0;
+            
+        i >>= 1;
+        --curr;
+    }
+        
+    for (int i = 0; i < sz; i++)
+        if (j[i] == 1)
+            d[cnt++] = chr[i];
+
+    d[cnt] = '\0';
+    std::string str(d);
+    delete[] d;
+    return str;    
+}
+
+int main ()
+{    
+    int b = 1;    
+    b <<= s;
+    j = new int[s];
+    cout << "sizeof " << b << endl;
+
+    // 2^n  subsequences -- all the binary combination
+    for (int i = 0; i < b; i++)    
+        mp[print(i,a,s)] = 0;
+    delete[] j;
+    
+    b = 1;
+    int s1 = sizeof(h)-1;
+    b <<= s1;
+    j = new int[s1];
+    cout << "sizeof " << b << endl;
+    for (int i = 0; i < b; i++)
+        mp1[print(i,h,s1)] = 0;
+    delete[] j;
+    
+    int max = 0;       
+    for (map<string, int>::iterator it = mp.begin(); it != mp.end(); it++)
+        for (map<string, int>::iterator it1 = mp1.begin(); it1 != mp1.end(); it1++)
+            if (it1->first == it->first && max < (it->first).size())
+            {
+                max = (it->first).size();
+                cout << "max "<<max << " "<<it->first << endl;
+            }
+    return 0;    
+}
+

@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Quick 
+{
+    vector<int> arr;
+    
+public:    
+    Quick ( int (&b)[5])
+    {
+        arr = vector<int> (b, b+(sizeof(b)/sizeof(int)));
+        
+        
+        
+        sort(0, arr.size()-1);
+        
+         for (auto i: arr)
+            cout << i << endl;
+    }
+    
+    int getpivot(int p)
+    {
+       return arr[p]; 
+    }
+    
+    void swap (int p, int q)
+    {
+        int temp = arr[p];
+        arr[p] = arr[q];
+        arr[q] = temp;
+    }
+    
+    
+    void sort(int p, int q)
+    {
+        
+        if (p >= arr.size() || q <= 0 || q-p <= 1 )
+            return ;
+        
+        int pivot = getpivot(p);
+        int left = p, right = q;
+        while (p<q)
+        {
+            while (p <= right && arr[p] <= pivot) p++;
+            while (q >= left && arr[q] > pivot)  q--;
+            
+            if (p<q) swap(p,q);
+        }
+        
+        swap(left, q);
+        
+        sort(left,q);
+        sort(q+1, right);
+    }
+};
+
+int main()
+{
+    int a[5] = {22,11,44,33,66};
+    Quick q(a);
+    return 0;
+}

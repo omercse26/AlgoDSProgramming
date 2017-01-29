@@ -1,0 +1,51 @@
+
+approach : 1
+
+thread1:
+
+condition = false;
+while (1)
+{	
+	
+	lock(mutex);
+
+	int temp = condition;
+
+	unlock(mutex);
+
+	if (temp)	    
+	    break;
+	
+	sleep(10);
+}
+
+
+
+
+thread2:
+
+lock(mutex);
+condition = true;
+unlock (mutex);
+
+
+------------------------
+approach 2:
+
+thread1:
+
+lock(mutex);
+while (condition == false)
+{
+	condVar.wait(mutex)
+}
+unlock(mutex)
+
+
+thread2:
+
+lock (mutex)
+condition = true;
+unlock (mutex)
+
+condVar.wakeup(mutex)

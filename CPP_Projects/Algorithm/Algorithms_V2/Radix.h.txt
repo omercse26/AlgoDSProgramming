@@ -1,0 +1,75 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int arr[] = {47,21,935,68,54};
+
+
+int findmaxdigits()
+{
+   int maxdigits = 0;
+   for (int i=0; i<5; i++)
+   {
+       int j=0;
+       int k = arr[i];
+       
+       while (k)
+       {
+           k = k/10;
+           j++;
+       }
+       
+       if (j > maxdigits)
+           maxdigits = j;
+   }
+   
+   return maxdigits;
+}
+
+int main()
+{
+   int maxdigits = findmaxdigits();
+   
+   vector<int> bin[10];
+   vector<int> temp[10];
+   
+   for (int i=0; i<5; i++)
+       temp[i].push_back(arr[i]);
+    
+    
+   cout << "maxdigits " << maxdigits << endl;
+   
+   for (int k=0; k<maxdigits; k++)
+   {
+    for (int i=0; i<10; i++)
+    {
+        for (auto v: temp[i])
+        {
+            int j = v;
+            int ten = 1;
+
+            for (int x=0; x<k; x++)
+                ten = ten * 10;
+
+            j = j/ten;
+            j = j%10;
+            bin[j].push_back(v);
+        }        
+    }
+    
+    for (int i=0; i<10; i++)
+    {
+        temp[i].clear();
+        temp[i] = bin[i];
+        bin[i].clear();
+    }
+   }
+   
+   for (int i=0; i<10; i++)
+   {
+       for (auto v: temp[i])
+           cout << v << " ";
+       cout << endl;
+   }
+}
