@@ -1,0 +1,11 @@
+org 100
+mov eax,4
+mov ebx,eax
+mov eax,2
+xchg eax,ebx
+sub eax,ebx
+add eax,48
+mov ah,2
+mov dl,al
+int 21h
+int 20h

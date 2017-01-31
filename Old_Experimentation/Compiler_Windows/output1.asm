@@ -1,0 +1,64 @@
+push ebp
+subl esp,4
+_main:
+subl esp,4
+subl esp,4
+subl esp,4
+subl esp,4
+subl esp,4
+mov eax,10
+mov ebx,
+add ebx
+mov eax,30
+mov ebx,
+add ebx
+mov eax,b
+mov ebx,c
+add ebx
+mov eax,t0
+mov ebx,d
+add ebx
+mov eax,t1
+mov ebx,e
+add ebx
+mov eax,t2
+mov ebx,
+add ebx
+mov eax,a
+mov ebx,1
+add ebx
+mov eax,b
+mov ebx,1
+add ebx
+mov eax,c
+mov ebx,1
+add ebx
+mov eax,d
+mov ebx,1
+add ebx
+mov eax,t3
+push eax
+mov eax,t4
+push eax
+mov eax,t5
+push eax
+mov eax,t6
+push eax
+call 
+_printa:
+push ebp
+subl esp,4
+_aa:
+push ebp
+subl esp,4
+subl esp,4
+mov eax,10
+mov ebx,
+add ebx
+_cc:
+push ebp
+subl esp,4
+subl esp,4
+mov eax,20
+mov ebx,
+add ebx

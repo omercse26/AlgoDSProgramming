@@ -1,0 +1,12 @@
+%{
+/* test */
+%}
+%%
+
+is | 
+are |
+have |
+has      {printf("%s god is great\n",yytext);} 
+[a-zA-Z]+ {ECHO;}
+.|\n 
+%%
