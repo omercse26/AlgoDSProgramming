@@ -186,8 +186,4 @@ def runMethodsInParallel(*methods):
         errormsg += queuederrmsg
 
     if len(errormsg) > 0:
-        raise CommandProcException(errormsg)               
-
-    
-    
-                        
+        raise CommandProcException(errormsg)
