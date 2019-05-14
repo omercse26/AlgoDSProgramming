@@ -1,93 +1,117 @@
 #include<stdio.h>
-#include<conio.h>
-int findpivot(int,int);
-int partition(int,int,int);
-void quick(int,int);
-void swap(int,int);
-int a[]={3,1,4,1,5,9,2,6,5,3};
-struct stack
+
+int findpivot(int, int);
+int partition(int, int, int);
+void quick(int, int);
+void swap(int, int);
+
+
+int array[] = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3};
+ 
+struct PartitionInfo
 {
-  int l;
-  int r;
+    int leftEnd;
+    int rightEnd;
 };
-struct stack stack[100];
-int s=-1;
-void main()
+
+struct PartitionInfo stack[100];
+int top = -1;
+
+int main()
 {
- int i;
- clrscr();
- quick(0,9);
- for(i=0;i<10;i++)
-   printf("%d\n",a[i]);
- getch();
+    int i;
+
+    quickSort(0, 9);
+
+    for(i = 0; i < 10; i++) 
+    {
+        printf("%d\n",array[i]);
+    }
+
+    return 0;
 }
 
-void quick(int i,int j)
+void quickSort(int startIndex, int endIndex)
 {
-  int pivot,pivotindex,k;
-  s++;
-  stack[s].l=i;
-  stack[s].r=j;
-  //printf("adding: s:%d l:%d r:%d \n",s,i,j);
-  while(s>=0)
-  {
-    i=stack[s].l;
-    j=stack[s].r;
-    //printf("deleting: s:%d l:%d r:%d \n",s,i,j);
-    s--;
-    while(1)
-    {
-       pivotindex = findpivot(i,j);
-       if(pivotindex==-1)
-       {
-	  break;
-       }
-       pivot=a[pivotindex];
-       k=partition(i,j,pivot);
-       s++;
-       stack[s].l=k;
-       stack[s].r=j;
-       //printf("adding: s:%d l:%d r:%d \n",s,k,j);
-       j=k-1;
-     }
+    int pivot, pivotindex, k;
 
+    top++;
+
+    stack[top].leftEnd   = startIndex;
+    stack[top].rightEnd  = endIndex;
+
+    //printf("adding: s:%d l:%d r:%d \n",s,i,j);
+    while(top >= 0)
+    {
+        startIndex = stack[top].leftEnd;
+        endIndex   = stack[top].rightEnd;
+
+        //printf("deleting: s:%d l:%d r:%d \n",s,i,j);
+
+        --top;
+
+        while(1)
+        {
+            pivotindex = findPivot(startIndex, endIndex);
+            if(pivotindex == -1)
+            {
+	            break;
+            }
+
+            pivot = array[pivotindex];
+            k = partition(startIndex, endIndex, pivot);
+            ++top;
+
+            stack[top].leftEnd  = k;
+            stack[top].rightEnd = endIndex;
+            //printf("adding: s:%d l:%d r:%d \n",s,k,j);
+            endIndex = k-1;
+        }
    }
 }
 
-int findpivot(int i,int j)
+int findPivot(int startIndex, int endIndex)
 {
- int firstkey;
- int k;
- firstkey = a[i];
- for(k=i+1;k<=j;k++)
- {
-  if(a[k]>firstkey)
-   return k;
-  else if(a[k]<firstkey)
-   return i;
- }
- return -1; // different keys were never found
-}
-int partition(int i,int j,int pivot)
-{
- int l,r;
- l=i;
- r=j;
- while(l<=r)//while(l<r) think of this cos l==r is not possible
- {
-  swap(l,r);
-  while(a[l]<pivot)
-   l++;
-  while(a[r]>=pivot)
-   r--;
- }
- return l;
+    int k;
+    int firstkey = array[startIndex];
+
+    for(k = startIndex + 1; k <= endIndex; k++)
+    {
+        if(array[k] > firstkey)
+        {
+            return k;
+        }
+        else if(array[k] < firstkey)
+        {
+            return startIndex;
+        }
+    }
+
+    return -1; // different keys were never found
 }
 
-void swap(int l,int r)
+int partition(int startIndex, int endIndex, int pivot)
 {
- int temp;
- temp = a[r];
- a[r] = a[l];
- a[l] = temp;
+    int left, right;
+
+    left  = startIndex;
+    right = endIndex; 
+
+    while(left <= right)  //while(l<r) think of this cos l==r is not possible
+    {
+        swap(left, right);
+
+        while(array[left] < pivot)      { ++left;  }
+
+        while(array[right] >= pivot)    { --right; }
+    }
+
+    return left;
+}
+
+void swap(int i, int j)
+{
+    int temp = array[j];
+    array[j] = array[i];
+    array[i] = temp;
 }
