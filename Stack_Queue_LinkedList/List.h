@@ -1,167 +1,181 @@
-/* 
- * File:   List.h
- * Author: omer.asif
- *
- * Created on January 24, 2013, 8:07 PM
- */
-
-#ifndef LIST_H
-#define	LIST_H
-#include <iostream>
 #include <memory>
-
-//#include "List_Node.h"
-
-using namespace std;
-
-//template <typename T>
-//class Iterator;
-
-template <typename T>
-struct ListNode
-{
-	T data;
-	std::unique_ptr<ListNode> next;
-	ListNode(T a) : data(a), next(nullptr) {}
-
-	~ListNode()
-	{
-		cout << "Destructing node " << data << endl;
-	}
-};
+#include <iostream>
 
 template <typename T>
 class List
 {
-	using Node = ListNode<T>;
-	using NodePtr = std::unique_ptr<Node>;
-
-	NodePtr root;
-public:
-	List() : root(nullptr) {}
-
-	void insertFront(T data)
+  
+protected:
+    class Node;
+  	using OwningPtr = std::unique_ptr<Node>;
+  
+  	struct Node
 	{
-		NodePtr node = std::make_unique<Node>(data);
-		node->next = std::move(root);
-		root = std::move(node);
+		T data;
+		OwningPtr next;
+
+		Node()    : data(),  next(nullptr) {}
+		Node(T a) : data(a), next(nullptr) {}
+		~Node()
+		{
+			std::cout << "Destructing Node " << data << std::endl;
+		}
+	};
+  
+    struct Iterator
+    {
+        // Non-owning pointer
+        Node* p;
+        Iterator(Node* p) : p(p) {}
+
+        // Note: Pre-Increment
+        Iterator& operator++ ()
+        {
+            p = p->next.get();
+            return *this;
+        }
+
+        bool operator != (const Iterator& other)
+        {
+            return  p != other.p;
+        }
+
+        int operator*() { return p->data; }
+
+        Node* operator -> () { return p; }
+
+        operator Node*() { return p; }
+    };  		    
+
+	OwningPtr head_;
+
+	// tail_ should be a non owning pointer since it will owned by some 'next' pointer,
+	Node*   tail_;
+  
+    OwningPtr reverse(OwningPtr& currNodePtr)
+    {
+      	if (currNodePtr->next == nullptr)
+        {
+          	return std::move(currNodePtr);
+        }
+        
+        auto copiedNxtPtr = currNodePtr->next.get();
+        // This call will erase/move the currNodePtr->next
+      	auto head = reverse(currNodePtr->next);
+      
+      	copiedNxtPtr->next = std::move(currNodePtr);
+      
+      	return head;
+    }
+  
+  	OwningPtr& findNodeBefore(OwningPtr& head, Node* endPtr)
+    {
+       	if (head->next.get() == endPtr)
+        {
+          	return head;
+        }
+      
+        return findNodeBefore(head->next, endPtr);
+    }
+  
+    OwningPtr& findNodeBefore(Node* endPtr)
+    {             
+        return findNodeBefore(head_, endPtr);
+    }
+  
+public:
+	List() : head_(std::make_unique<Node>())	         
+	{
+		head_->next = std::make_unique<Node>();
+		tail_ =  head_->next.get();
+	}	
+  
+    Iterator begin() 
+	{ 
+		auto t = Iterator(head_.get()); 
+		return ++t;
 	}
 
-	NodePtr remove(T data)
+	Iterator end() 
+    { 
+        return Iterator(tail_); 
+    }
+
+    void insertFront(T data)
 	{
-		Node* prev = nullptr;
-		Node* curr = root.get();
+		OwningPtr node = std::make_unique<Node>(data);
+		node->next = std::move(head_->next);
+		head_->next = std::move(node);
+	}
+  
+    void insertLast(T data)
+    {
+      	OwningPtr node = std::make_unique<Node>(data);      	
+      	OwningPtr& nodeBeforeTail = findNodeBefore(tail_);      
+        node->next = std::move(nodeBeforeTail->next);
+        nodeBeforeTail->next = std::move(node);
+    }
+  
+    void removeFront()
+    {
+        if (head_->next.get() == end()) { return; }
+      
+      	head_->next = std::move(head_->next->next);
+    }
+  
+    void removeLast()
+    {
+      	OwningPtr& nodeBeforeTail = findNodeBefore(tail_);
+      
+        if (nodeBeforeTail.get() == begin()) { return; }
+      
+        OwningPtr& prevNode = findNodeBefore(nodeBeforeTail.get());            	
+        prevNode->next = std::move(prevNode->next->next);
+        
+    }
 
-		while (curr != nullptr)
-		{
-			if (curr->data != data)
-			{
-				prev = curr;
-				curr = curr->next.get();
-				continue;
-			}
-
-			if (curr != root.get())
-			{
-				auto temp = std::move(prev->next);
-				prev->next = std::move(temp->next);
-				return temp;
-			}
-			else
-			{
-				auto temp = std::move(root);
-				root = std::move(temp->next);
-				return temp;
-			}
-		}
+	OwningPtr remove(T data)
+	{
+		auto prev = head_.get();
+      
+        for (auto itr = begin(); itr != end(); prev = itr, ++itr)
+        {          
+          	if (*itr == data)
+            {
+                // Take hold of curr owned by prev->next
+              	auto tmp = std::move(prev->next);
+				prev->next = std::move(itr->next);
+				return tmp;
+            }          		
+        }		
 
 		return nullptr;
 	}
-
-	void print()
-	{
-		for (Node* node = root.get(); node != nullptr; node = node->next.get())
-		{
-			cout << node->data << " ";
-		}
-
-		cout << endl;
-	}
+  
+    void reverseList()
+    {
+      	auto headPtr = head_.get();
+        head_ = reverse(head_);
+      	tail_ = headPtr;
+    }    
 };
 
 void testdriver() 
 {	
 	List<int> list;
-	list.insertFront(1);
-	list.insertFront(2);
-	list.insertFront(3);
+	
+  	for (int i = 1; i <= 10; ++i) { list.insertFront(i); }
 
-	list.remove(1);
-
-	list.print();
+	list.removeFront();
+  
+    list.removeLast();
+  
+  	list.insertLast(11);
+  
+    list.removeLast();
+    
+	for (const auto& i: list)
+	{
+		std::cout << i << std::endl;
+	}
 }
-
-//class List
-//{
-//protected:
-//  typedef List_Node<T> Node;
-//  Node *root;
-//  
-//public:  
-//  List(): root (NULL) {};
-//  ~List(){root->deleteAllNodes();}
-//  
-//  void insert(T);
-//  Node* deleteNode(T);
-//  void print();
-//  Node* first() { return root; } 
-//  Iterator begin() { return new Iterator(this); }
-//};
-//
-//template <typename T>
-//void List<T>::insert(T data)
-//{
-//   if (root == NULL)   
-//      root = new Node(data);
-//   else
-//   {
-//     root = new Node(data,root);
-//   }
-//}
-//
-//template <typename T>
-//List_Node<T>* List<T>::deleteNode(T data)
-//{
-//   if (root == NULL)   
-//      return NULL;
-//   
-//   Node *temp = root;
-//   Node *prev = NULL;
-//   while (temp)
-//   {
-//      if (temp->data == data)
-//	  {
-//		 if (temp == root)
-//			root = temp->next;
-//		 else
-//			prev->next = temp->next;
-//	         delete temp;
-//		 return prev;
-//	  }	  
-//	  prev = temp;
-//	  temp = temp->next;	     
-//   }
-//   return NULL;
-//}
-//
-//template <typename T>
-//void List<T>::print()
-//{
-//
-//  for (Node *temp = root; temp != NULL; temp = temp->next)
-//     cout << temp->data << " ";
-//  cout << endl;
-//}
-
-#endif	/* LIST_H */
-
