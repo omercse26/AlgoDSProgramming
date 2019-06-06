@@ -10,39 +10,55 @@
 #include "List.h"
 
 template <typename T>
-class Queue : protected List <T>
+class Queue : public List <T>
 {
-   protected:
-   typedef List_Node<T> Node;    
-   Node *back;
-   
-   public:
-   Queue() : back(NULL) {}
-   void Enqueue(T data)
-      {
-          insert(data);
-          if (back == NULL)
-              back = this->root;
-      }
-      
-   T Dequeue()      
-      {
-          try {
-            if (back == NULL)
-                throw "No Elements";
-            T temp = back->data;
-            back = deleteNode(temp);
-            if (this->root == NULL)
-                back == NULL;
-            return temp;
-          }
-          catch (const char* str)
-          {
-              cout << str << endl; exit(-1);
-          }
-      }
+	// Since empty does not have template parameter, ADL does not work.
+	using List<T>::empty;
+	using List<T>::front;
+	using List<T>::removeFront;
+	using List<T>::insertLast;
+
+
+public:
+	Queue() {}
+
+	void enqueue(T data)
+	{
+		insertLast(data);
+	}
+
+	T dequeue()
+	{
+		try
+		{
+			if (empty())
+			{
+				throw "No Elements";
+			}
+
+			T temp = front();
+			removeFront();
+			return temp;
+		}
+		catch (const char* str)
+		{
+			std::cout << str << std::endl;
+			throw;
+		}
+	}
 };
 
+void testdriver_queue()
+{
+	Queue<int> queue;
+	queue.enqueue(1);
+	queue.enqueue(2);
+	queue.enqueue(3);
+
+	std::cout << queue.dequeue() << std::endl;
+	std::cout << queue.dequeue() << std::endl;
+	std::cout << queue.dequeue() << std::endl;
+}
 
 #endif	/* QUEUE_H */
 
