@@ -6,64 +6,64 @@
  */
 
 #ifndef QUEUE_H
-#define	QUEUE_H
+#define    QUEUE_H
 #include "List.h"
 
 template <typename T>
 class Queue : private List <T>
 {
-	// Since empty does not have template parameter, ADL does not work.
-	using List<T>::empty;
-	using List<T>::front;
-	using List<T>::removeFront;
-	using List<T>::insertLast;
+    // Since empty does not have template parameter, ADL does not work.
+    using List<T>::empty;
+    using List<T>::front;
+    using List<T>::removeFront;
+    using List<T>::insertLast;
 
 
 public:
-	Queue() {}
+    Queue() {}
 
     bool empty()
     {
-    	return List<T>::empty();
+        return List<T>::empty();
     }
 
-	void enqueue(T data)
-	{
-		insertLast(data);
-	}
+    void enqueue(T data)
+    {
+        insertLast(data);
+    }
 
-	T dequeue()
-	{
-		try
-		{
-			if (empty())
-			{
-				throw "No Elements";
-			}
+    T dequeue()
+    {
+        try
+        {
+            if (empty())
+            {
+                throw "No Elements";
+            }
 
-			T temp = front();
-			removeFront();
-			return temp;
-		}
-		catch (const char* str)
-		{
-			std::cout << str << std::endl;
-			throw;
-		}
-	}
+            T temp = front();
+            removeFront();
+            return temp;
+        }
+        catch (const char* str)
+        {
+            std::cout << str << std::endl;
+            throw;
+        }
+    }
 };
 
 void testdriver_queue()
 {
-	Queue<int> queue;
-	queue.enqueue(1);
-	queue.enqueue(2);
-	queue.enqueue(3);
+    Queue<int> queue;
+    queue.enqueue(1);
+    queue.enqueue(2);
+    queue.enqueue(3);
 
-	std::cout << queue.dequeue() << std::endl;
-	std::cout << queue.dequeue() << std::endl;
-	std::cout << queue.dequeue() << std::endl;
+    std::cout << queue.dequeue() << std::endl;
+    std::cout << queue.dequeue() << std::endl;
+    std::cout << queue.dequeue() << std::endl;
 }
 
-#endif	/* QUEUE_H */
+#endif    /* QUEUE_H */
 

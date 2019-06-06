@@ -6,40 +6,40 @@
  */
 
 #ifndef STACK_H
-#define	STACK_H
+#define STACK_H
 
 #include "List.h"
 
 template <typename T>
 class Stack
 {
-	List<T> list;
+    List<T> list;
 
 public:
-	void push(T data)
-	{
-		list.insertLast(data);
-	}
+    void push(T data)
+    {
+        list.insertLast(data);
+    }
 
-	T pop()
-	{
+    T pop()
+    {
         auto temp = list.back();
         list.removeLast();
-		return temp;
-	}
+        return temp;
+    }
 };
 
 void testdriver_stack()
 {
-	Stack<int> stack;
-	stack.push(1);
-	stack.push(2);
-	stack.push(3);
+    Stack<int> stack;
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
 
-	std::cout << stack.pop() << std::endl;
-	std::cout << stack.pop() << std::endl;
-	std::cout << stack.pop() << std::endl;
+    std::cout << stack.pop() << std::endl;
+    std::cout << stack.pop() << std::endl;
+    std::cout << stack.pop() << std::endl;
 }
 
-#endif	/* STACK_H */
+#endif    /* STACK_H */
 
