@@ -10,35 +10,36 @@
 
 #include "List.h"
 
-
 template <typename T>
-class Stack: protected List<T>
+class Stack
 {
-    public:
-        
-    void Push(T data)
-    {
-        insert (data);
-    }
-    
-    T Pop ()
-    {
-      try {
-        if (this->root == NULL)
-            throw "No Elements";
-          
-        T temp = this->root->data;        
-        deleteNode(temp);
-        return temp;
-      }
-      
-      catch (char const * s)
-      {
-              cout << s << endl; exit(-1); 
-      }
-    }
-    
+	List<T> list;
+
+public:
+	void push(T data)
+	{
+		list.insertLast(data);
+	}
+
+	T pop()
+	{
+        auto temp = list.back();
+        list.removeLast();
+		return temp;
+	}
 };
+
+void testdriver_stack()
+{
+	Stack<int> stack;
+	stack.push(1);
+	stack.push(2);
+	stack.push(3);
+
+	std::cout << stack.pop() << std::endl;
+	std::cout << stack.pop() << std::endl;
+	std::cout << stack.pop() << std::endl;
+}
 
 #endif	/* STACK_H */
 

@@ -10,7 +10,7 @@
 #include "List.h"
 
 template <typename T>
-class Queue : public List <T>
+class Queue : private List <T>
 {
 	// Since empty does not have template parameter, ADL does not work.
 	using List<T>::empty;
