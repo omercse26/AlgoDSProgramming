@@ -22,6 +22,11 @@ class Queue : private List <T>
 public:
 	Queue() {}
 
+    bool empty()
+    {
+    	return List<T>::empty();
+    }
+
 	void enqueue(T data)
 	{
 		insertLast(data);
