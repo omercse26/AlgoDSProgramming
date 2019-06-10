@@ -50,17 +50,22 @@ class BoardUtil
                 hasCollision(row, col, nochg, dec) ||
                 hasCollision(row, col, dec, nochg);
     }
+
+    public static void printPath (int num, ArrayList<Pair> path)
+    {
+        System.out.print(num);
+        for (Pair j : path) {
+            System.out.print(": (" + j.row + "," + j.column + ")");
+        }
+        System.out.println();
+    }
 }
 
 class RecursiveEightQueen {
-    static int num = 0;
+    int num = 0;
     public void placeQueen(int row, ArrayList<BoardUtil.Pair> path) {
         if (row == BoardUtil.MAX) {
-            System.out.print(++num);
-            for (BoardUtil.Pair j : path) {
-                System.out.print(": (" + j.row + "," + j.column + ")");
-            }
-            System.out.println();
+            BoardUtil.printPath(++num, path);
             return;
         }
 
@@ -101,11 +106,7 @@ class NonRecursiveEightQueen
 
             if (lastRow == BoardUtil.MAX-1) {
                 // Success.
-                System.out.print(++num);
-                for (BoardUtil.Pair j : path) {
-                    System.out.print(": (" + j.row + "," + j.column + ")");
-                }
-                System.out.println();
+                BoardUtil.printPath(++num, path);
             }
 
             if (lastCol != -1) {
