@@ -1,157 +1,173 @@
-import java.io.*;
-class Eight
+/**
+ * Created by omerc on 6/9/2019.
+ */
+
+import java.util.*;
+import java.util.function.Function;
+
+class BoardUtil
 {
-  static byte chessboard[][] = {
-	                             {0,0,0,0,0,0,0,0},
-	                             {0,0,0,0,0,0,0,0},
-	                             {0,0,0,0,0,0,0,0},
-	                             {0,0,0,0,0,0,0,0},
-	                             {0,0,0,0,0,0,0,0},
-								 {0,0,0,0,0,0,0,0},
-								 {0,0,0,0,0,0,0,0},
-	                             {0,0,0,0,0,0,0,0},
-                            };
-  public static int CHESS = 8;
-  public static void main(String args[])
-  {
+    final static int MAX = 8;
 
-    Eight singularity = new Eight();
-    Stack stack = new Stack();
-    Hold_Pos st_obj=null;
-    boolean flag = true;
-	//int o;
-    int j = 0;
-	//System.in(o);
-    //singularity.print();
-    for (int i=0;i<=CHESS;i++)
-    {
-		if (flag==true)
-		{
-          if (i==CHESS)
-             break;
-		  flag = false;
-		  j = 0;
-	    }
-	    else
-	    {
-			 //System.out.println(i+"  "+j);
-			 st_obj = stack.pop();
-		     i = st_obj.row;
-             j = st_obj.col + 1;
-             Eight.chessboard[i][j-1] = 0;
-             //System.out.println("--> Popped after "+i+"  "+j);
-             if (j > CHESS-1)
-                 continue;
-	    }
-		for (;j<CHESS;j++)
-		{
-			//System.out.println("processing "+i+"  "+j);
-			if (singularity.isSafe(i,j))
-			{
-			   Eight.chessboard[i][j] = 1;
-			   stack.push(i,j);
-			   flag = true;
-			   break;
-		    }
-	    }
+    static class Pair {
+        int row;
+        int column;
 
-	}
-	//System.out.println("Omer Asif");
-	singularity.print();
-
-  }
-
-  private void print()
-  {
-	 for (int i=0;i<CHESS;i++)
-     {
-		for (int j=0;j<CHESS;j++)
-		{
-			System.out.print(Eight.chessboard[i][j]);
-	    }
-	    System.out.println();
-	 }
-  }
-
-
-  private boolean isSafe(int row,int col)
-  {
-
-    for (int i=0;i<row;i++)
-		if (Eight.chessboard[i][col] == 1)
-		   return false;
-
-	for (int i=0;i<col;i++)
-	    if (Eight.chessboard[row][i] == 1)
-		   return false;
-
-	for (int i=row,j=col;i>=0&&j>=0;i--,j--)
-		if (Eight.chessboard[i][j] == 1)
-		   return false;
-
-    for (int i=row,j=col;i>=0&&j<CHESS;i--,j++)
-		if (Eight.chessboard[i][j] == 1)
-		   return false;
-
-	/*for (int i=row,j=col;i<CHESS&&j>=0;i++,j--)
-			if (Eight.chessboard[i][j] == 1)
-		   return false;*/
-
-    /*for (int i=row,j=col;i<CHESS&&j<CHESS;i++,j++)
-		if (Eight.chessboard[i][j] == 1)
-		   return false;*/
-
-    return true;
- }
-
-}
-
-
-class Stack
-{
-    public int top;
-	public Hold_Pos st_obj[] = new Hold_Pos[10];
-	public Stack()
-	{
-		top=-1;
-		for (int i=0;i<10;i++)
-          st_obj[i] = new Hold_Pos();
-	}
-
-    public void push(int i,int j)
-    {
-		top++;
-		st_obj[top].row = i;
-		st_obj[top].col = j;
-		//System.out.println("--> pushed "+i+"and "+j);
-		//System.out.println("--> top is "+top);
+        Pair(int r, int c) {
+            row = r;
+            column = c;
+        }
     }
 
-    public Hold_Pos pop()
-    {
-		if (top >= 0 )
-		{
-		  top--;
-		  return st_obj[top+1];
-	    }
-	    else
-	    {
-			System.out.println("Fatal error!");
-			return null;
-	    }
+    static boolean board[][] = {
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+            {false, false, false, false, false, false, false, false},
+    };
+
+    public static boolean hasCollision(int row, int col, Function<Integer, Integer> rowfunc, Function<Integer, Integer> colfunc) {
+        int nr = rowfunc.apply(row);
+        int nc = colfunc.apply(col);
+
+        return ((nr >= 0 && nr < MAX && nc >= 0 && nc < MAX) &&
+                (BoardUtil.board[nr][nc] || hasCollision(nr, nc, rowfunc, colfunc))
+        );
+    }
+
+    public static boolean hasCollision(int row, int col) {
+        Function<Integer, Function<Integer, Integer>> func = a -> b -> a + b;
+        Function<Integer, Integer> inc = func.apply(1);
+        Function<Integer, Integer> dec = func.apply(-1);
+        Function<Integer, Integer> nochg = func.apply(0);
+
+        return hasCollision(row, col, dec, dec) ||
+                hasCollision(row, col, dec, inc) ||
+                hasCollision(row, col, nochg, dec) ||
+                hasCollision(row, col, dec, nochg);
     }
 }
 
-class Hold_Pos
+class RecursiveEightQueen {
+    static int num = 0;
+    public void placeQueen(int row, ArrayList<BoardUtil.Pair> path) {
+        if (row == BoardUtil.MAX) {
+            System.out.print(++num);
+            for (BoardUtil.Pair j : path) {
+                System.out.print(": (" + j.row + "," + j.column + ")");
+            }
+            System.out.println();
+            return;
+        }
+
+        for (int col = 0; col < BoardUtil.MAX; ++col) {
+            if (BoardUtil.hasCollision(row, col)) {
+                continue;
+            }
+
+            // Setup
+            BoardUtil.board[row][col] = true;
+            path.add(new BoardUtil.Pair(row, col));
+
+            placeQueen(row + 1, path);
+
+            // TearDown
+            path.remove(path.size() - 1);
+            BoardUtil.board[row][col] = false;
+        }
+    }
+}
+
+class NonRecursiveEightQueen
 {
-		int row;
-		int col;
+    Stack<BoardUtil.Pair> stack = new Stack<>();
+    ArrayList<BoardUtil.Pair> path = new ArrayList<>();
+    int num = 0;
 
-  public Hold_Pos ()
-  {}
-};
+    public void placeQueens() {
 
+        // insert a dummy 0,-1 entry, so that first pop will work.
+        stack.push(new BoardUtil.Pair(0, -1));
 
+        while(!stack.empty()){
+            BoardUtil.Pair pair = stack.pop();
 
+            int lastRow = pair.row;
+            int lastCol = pair.column;
 
+            if (lastRow == BoardUtil.MAX-1) {
+                // Success.
+                System.out.print(++num);
+                for (BoardUtil.Pair j : path) {
+                    System.out.print(": (" + j.row + "," + j.column + ")");
+                }
+                System.out.println();
+            }
 
+            if (lastCol != -1) {
+                // TearDown
+                BoardUtil.board[lastRow][lastCol] = false;
+                path.remove(path.size() - 1);
+            }
+
+            int newCol = lastCol + 1;
+            if (newCol >= BoardUtil.MAX){
+                continue;
+            }
+
+            placeQueenTillPossible(lastRow, newCol);
+        }
+    }
+
+    private void placeQueenTillPossible(int row, int col) {
+        boolean success = tryPlaceQueenInRow(row, col);
+        if (!success) {
+            return;
+        }
+
+        for (int i = row+1; i < BoardUtil.MAX; ++i) {
+            success = tryPlaceQueenInRow(i, 0);
+            if (!success) {
+                return;
+            }
+        }
+    }
+
+    private boolean tryPlaceQueenInRow(int row, int startCol) {
+        for (int col = startCol; col < BoardUtil.MAX; ++col) {
+            if (tryPush(row, col)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean tryPush(int row, int col) {
+        if (BoardUtil.hasCollision(row, col)) {
+            return false;
+        }
+
+        stack.push(new BoardUtil.Pair(row, col));
+
+        // Setup
+        BoardUtil.board[row][col] = true;
+        path.add(new BoardUtil.Pair(row, col));
+
+        return true;
+    }
+}
+
+public class Eight {
+    public static void main(String[] args) {
+        //RecursiveEightQueen recursiveQueen = new RecursiveEightQueen();
+        //ArrayList<BoardUtil.Pair> path = new ArrayList<>();
+        //recursiveQueen.placeQueen(0, path);
+
+        NonRecursiveEightQueen nonrecursiveEightQueen = new NonRecursiveEightQueen();
+        nonrecursiveEightQueen.placeQueens();
+    }
+}
