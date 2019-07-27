@@ -68,3 +68,22 @@ workaround to capture parameter packs in a lambda
 https://stackoverflow.com/questions/47496358/c-lambdas-how-to-capture-variadic-parameter-pack-from-the-upper-scope?rq=1
 
 */
+
+///// interesting parameter expansion pattern
+// from: https://arne-mertz.de/2016/11/more-variadic-templates/ 
+
+#include <utility>
+#include <tuple>
+
+template <class T, class... Args>
+auto pairWithRest(T const& t, Args const&... args) {
+    return std::make_tuple(std::make_pair(t, args)...);
+}
+
+template <class... Args>
+auto selfCartesianProduct(Args const&... args) {
+    return std::tuple_cat(pairWithRest(args, args...)...);
+}
+
+auto cp = selfCartesianProduct(1, 0.5);
+
