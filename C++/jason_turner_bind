@@ -16,6 +16,8 @@ struct Bind
   	T t;
 };
 
+template <typename T> Bind(T) -> Bind<T>;
+
 template <int I, typename T>
 constexpr decltype(auto) getparam(const placeholder<I>&,  T&& t)
 {
@@ -38,21 +40,29 @@ constexpr auto bind = [](auto&& c, auto && ... p)
 {
   return Bind {
       [ c = std::forward<decltype(c)>(c),
-        ... p
+        p = std::make_tuple(std::forward<decltype(p)>(p)...)
       ]
       (auto && ... v)
     {
-      
+      return std::invoke(c, getparam(p, v)...);
     }
   };
 };
+
+int add(int a, int b)
+{
+  return a+b;
+}
 
 int main()
 {
     constexpr auto _0 = placeholder<0>{};
     constexpr auto _1 = placeholder<1>{};
+  
+    auto f = bind(add, _0, 3);
+  
+    //f(0);
 }
-
 /*
 workaround to capture parameter packs in a lambda
 https://stackoverflow.com/questions/47496358/c-lambdas-how-to-capture-variadic-parameter-pack-from-the-upper-scope?rq=1
