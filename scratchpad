@@ -81,3 +81,77 @@ int main()
     s<2> ss;
    ss.print();
 }
+
+=======================================================================================================
+
+#include <iostream>
+#include <array>
+#include <type_traits>
+#include <optional>
+
+template <typename Key, typename Value, int size>
+struct MemoryModel 
+{
+  struct cache_content
+  {
+    bool dirty_bit;
+    bool valid;
+    Value data;
+  };
+  
+  constexpr static auto array_size = size/sizeof(cache_content);
+  std::array<cache_content, array_size> contents;
+  
+  auto getIndex(Key key)
+  {
+    if constexpr (std::is_arithmetic_v<Key>)
+    {
+      return static_cast<unsigned long>(key) % array_size;
+    }
+    else if constexpr (std::is_same_v<Key, std::string>)
+    {
+      // djb2
+      unsigned long hash = 5381;
+      for (auto ch : key) 
+      {
+          hash = (hash << 5) + hash + ch; /* hash * 33 + c */
+      }
+      return hash % array_size;
+    }
+  }
+  
+  virtual std::optional<Value> fetch (Key key) = 0;
+  virtual bool store(Key key, Value value) = 0;
+  
+  virtual ~MemoryModel() {}
+};
+
+template <typename Key, typename Value, int size>
+struct CacheModel : MemoryModel<Key, Value, size>
+{
+    using MemoryModel<Key, Value, size>::contents;
+	std::optional<Value> fetch (Key key)
+    {
+    	auto index = getIndex(key);
+        if (contents[index].valid)
+        {
+        	return contents[index].data;
+        }
+        
+        return std::nullopt;
+    }
+    
+    bool store(Key key, Value value)
+    {
+    	auto index = getIndex(key);
+        contents[index].data = value;
+        contents[index].dirty_bit = true;
+        contents[index].valid = true;
+        return true;
+    }
+};
+
+int main()
+{
+
+}
