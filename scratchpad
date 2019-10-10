@@ -1,1 +1,52 @@
-1.
+#include <cstdio>
+#include <variant>
+#include <array>
+#include <type_traits>
+#include <iomanip>
+
+template <unsigned long size, typename Key, typename ParentCache, typename ...Types>
+struct cache
+{
+  // sizeof(std::variant<Types...>) can be more than the size of the largest type 
+  // due to alignment reasons.
+  
+  struct cache_content
+  {
+    bool dirty_bit;
+    bool valid;
+    std::variant<Types...> data;
+  };
+  
+  constexpr static auto array_size = size/sizeof(cache_content);
+  std::array<cache_content, array_size> contents;
+  
+  auto getIndex(Key key)
+  {
+    if constexpr (std::is_arithmetic_v<Key>)
+    {
+      return static_cast<unsigned long>(key) % array_size;
+    }
+    else if constexpr (std::is_same_v<Key, std::string>)
+    {
+      // djb2
+      unsigned long hash = 5381;
+      for (auto ch : key) 
+      {
+          hash = (hash << 5) + hash + ch; /* hash * 33 + c */
+      }
+      return hash % array_size;
+    }
+  }
+  
+  auto fetch(Key key)
+  {
+    auto index = getIndex(key);
+    return contents[index].data;
+  }
+};
+
+int main()
+{
+    cache<1024, int, float> c;
+    c.fetch(10);
+}
