@@ -50,3 +50,34 @@ int main()
     cache<1024, int, float> c;
     c.fetch(10);
 }
+
+
+
+
+#include <cstdio>
+#include <iostream>
+
+template <int I>
+struct s : private s<I-1>
+{
+  void print()
+  {
+     s<I-1>::print();
+  }
+};
+
+template<>
+struct s<0>
+{
+   void print()
+   {
+      std::cout << 0;
+   		//s<1>::print();
+   }
+};
+
+int main()
+{
+    s<2> ss;
+   ss.print();
+}
