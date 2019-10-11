@@ -151,21 +151,31 @@ struct CacheModel : MemoryModel<Key, Value, size>
     }
 };
 
-template <int I> using MM = CacheModel<int, int, I>;
-
-template <int I, int  ...sizes>
-struct MultiLevelCache : MultiLevelCache<sizes...>
+template <typename Key, typename Value, int I, int  ...sizes>
+struct MultiLevelCache : MultiLevelCache<Key, Value, sizes...>
 {
-   MM<I> m;
+   using MM = CacheModel<Key, Value, I>;
+   MM m;
+   
+   //void fetch(K
 };
 
-template <int I>
-struct MultiLevelCache<I>
+template <typename Key, typename Value, int I>
+struct MultiLevelCache<Key, Value, I>
 {
-	MM<I> m;
+   using MM = CacheModel<Key, Value, I>;
+   MM m;
 };
+
+template <typename Key, typename Value, typename ...Sizes>
+constexpr auto generate_multilevel_cache(const Sizes... cachesizelist)
+{
+  return MultiLevelCache<Key, Value, cachesizelist...>();
+}
+
 
 int main()
 { 
-   MultiLevelCache<1024, 4096> m;
+   //MultiLevelCache<int, int, 1024, 4096> mm;
+   auto m = generate_multilevel_cache<int, int>(1024, 4096);
 }
