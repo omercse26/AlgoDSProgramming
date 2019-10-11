@@ -83,7 +83,6 @@ int main()
 }
 
 =======================================================================================================
-
 #include <iostream>
 #include <array>
 #include <type_traits>
@@ -130,6 +129,7 @@ template <typename Key, typename Value, int size>
 struct CacheModel : MemoryModel<Key, Value, size>
 {
     using MemoryModel<Key, Value, size>::contents;
+    using MemoryModel<Key, Value, size>::getIndex;
 	std::optional<Value> fetch (Key key)
     {
     	auto index = getIndex(key);
@@ -151,7 +151,21 @@ struct CacheModel : MemoryModel<Key, Value, size>
     }
 };
 
-int main()
-{
+template <int I> using MM = CacheModel<int, int, I>;
 
+template <int I, int  ...sizes>
+struct MultiLevelCache : MultiLevelCache<sizes...>
+{
+   MM<I> m;
+};
+
+template <int I>
+struct MultiLevelCache<I>
+{
+	MM<I> m;
+};
+
+int main()
+{ 
+   MultiLevelCache<1024, 4096> m;
 }
