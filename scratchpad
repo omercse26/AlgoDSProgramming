@@ -157,7 +157,14 @@ struct MultiLevelCache : MultiLevelCache<Key, Value, sizes...>
    using MM = CacheModel<Key, Value, I>;
    MM m;
    
-   //void fetch(K
+   std::optional<Value> fetch(Key key)
+   {
+      if (auto value = m.fetch(key); value.has_value())
+      {
+        return value;
+      }
+      return MultiLevelCache<Key, Value, sizes...>::fetch(key);
+   }
 };
 
 template <typename Key, typename Value, int I>
@@ -165,17 +172,15 @@ struct MultiLevelCache<Key, Value, I>
 {
    using MM = CacheModel<Key, Value, I>;
    MM m;
+  
+   std::optional<Value> fetch(Key key)
+   {
+      return m.fetch(key);
+   }
 };
-
-template <typename Key, typename Value, typename ...Sizes>
-constexpr auto generate_multilevel_cache(const Sizes... cachesizelist)
-{
-  return MultiLevelCache<Key, Value, cachesizelist...>();
-}
-
 
 int main()
 { 
-   //MultiLevelCache<int, int, 1024, 4096> mm;
-   auto m = generate_multilevel_cache<int, int>(1024, 4096);
+  MultiLevelCache<int, int, 1024, 4096> mm;
+  mm.fetch(88);
 }
