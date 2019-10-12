@@ -275,6 +275,9 @@ int main()
 #include <array>
 #include <type_traits>
 #include <optional>
+#include <fstream>
+#include <sstream>
+#include <vector>
 
 template <typename Key, typename Value>
 struct MemoryModel 
@@ -286,7 +289,7 @@ struct MemoryModel
 };
 
 template <typename Key, typename Value, int size>
-struct CacheModel : MemoryModel<Key, Value>
+struct CacheMemory : MemoryModel<Key, Value>
 {
 	struct cache_content
   	{
@@ -337,12 +340,13 @@ struct CacheModel : MemoryModel<Key, Value>
     }
 };
 
-template <typename Key, typename Value, int size>
-struct FileMemory : MemoryModel<Key, Value, size>
+template <typename Key, typename Value>
+struct FileMemory : MemoryModel<Key, Value>
 {
 	std::optional<Value> fetch(Key key)
 	{
 		std::ifstream ifs("memory.csv");
+        
 		std::string skey = std::to_string(key);
 		if (ifs)
 		{
@@ -367,50 +371,67 @@ struct FileMemory : MemoryModel<Key, Value, size>
 		return std::nullopt;
 	}
 
-void store(Key key, Value value)
-{
-	std::ifstream ifs("dataset1.csv");
-	std::ofstream temp;
-	temp.open("temp.txt");
-	std::string skey = std::to_string(key);
-	if (ifs && temp)
-	{
-		std::string line;
-		while (std::getline(ifs, line))
-		{
-			std::stringstream ss(line);
-			char delimiter = ',';
-			std::string token;
-			std::vector<std::string> v;
-			while (std::getline(ss, token, delimiter))
-			{
-				v.push_back(token);
-			}
+  bool store(Key key, Value value)
+  {
+      try
+      {
+        std::ifstream ifs("memory.csv");
+        std::ofstream temp;
+        temp.open("temp.txt");
+        std::string skey = std::to_string(key);
+        if (ifs && temp)
+        {
+            std::string line;
+            while (std::getline(ifs, line))
+            {
+                std::stringstream ss(line);
+                char delimiter = ',';
+                std::string token;
+                std::vector<std::string> v;
+                while (std::getline(ss, token, delimiter))
+                {
+                    v.push_back(token);
+                }
 
-			if (v[0] == skey)
-			{
-				temp << value << "\n";
-			}
-			else
-			{
-				temp << line << "\n";
-			}
-		}
-	}
+                if (v[0] == skey)
+                {
+                    if constexpr (std::is_arithmetic_v<Value>)
+                    {
+                         temp << std::to_string(value) << "\n";
+                    }
+                    else if constexpr (std::is_same_v<Value, std::string>)
+                    {
+                       temp << value << "\n";
+                    }
+                }
+                else
+                {
+                    temp << line << "\n";
+                }
+            }
+        }
 
-	ifs.close();
-	temp.close();
+        ifs.close();
+        temp.close();
 
-	std::remove("dataset1.csv");
-	std::rename("temp.txt", "dataset1.csv");
-}
+        std::remove("memory.csv");
+        std::rename("temp.txt", "memory.csv");
+
+        return true;
+      }
+      
+      catch(...)
+      {
+      	return false;
+      }
+  }
 
 };
 
 template <typename Key, typename Value, int I, int  ...sizes>
 struct MultiLevelCache : MultiLevelCache<Key, Value, sizes...>
 {
-   using MM = CacheModel<Key, Value, I>;
+   using MM = CacheMemory<Key, Value, I>;
    MM m;
    
    std::optional<Value> fetch(Key key)
@@ -426,7 +447,7 @@ struct MultiLevelCache : MultiLevelCache<Key, Value, sizes...>
 template <typename Key, typename Value, int I>
 struct MultiLevelCache<Key, Value, I>
 {
-   using MM = CacheModel<Key, Value, I>;
+   using MM = FileMemory<Key, Value>;
    MM m;
   
    std::optional<Value> fetch(Key key)
@@ -437,7 +458,7 @@ struct MultiLevelCache<Key, Value, I>
 
 int main()
 { 
-  MultiLevelCache<int, int, 1024, 4096> mm;
+  MultiLevelCache<int, std::string, 1024, 4096> mm;
   mm.fetch(88);
 }
 
