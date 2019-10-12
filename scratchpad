@@ -184,3 +184,90 @@ int main()
   MultiLevelCache<int, int, 1024, 4096> mm;
   mm.fetch(88);
 }
+==================================================================================================================================
+
+
+#include <iostream>
+#include <fstream>
+#include <iterator>
+#include <vector>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <sstream>
+
+std::string fetch(unsigned long key)
+{
+	std::ifstream ifs("dataset1.csv");
+	std::string skey = std::to_string(key);
+	if (ifs)
+	{
+		std::string line;
+		while (std::getline(ifs, line))
+		{
+			std::stringstream ss(line);
+			char delimiter = ',';
+			std::string token;
+			std::vector<std::string> v;
+			while (std::getline(ss, token, delimiter))
+			{
+				v.push_back(token);
+			}
+
+			if (v[0] == skey)
+			{
+				return line;
+			}
+		}
+	}
+	return std::string();
+}
+
+void store(unsigned long key, std::string value)
+{
+	std::ifstream ifs("dataset1.csv");
+	std::ofstream temp;
+	temp.open("temp.txt");
+	std::string skey = std::to_string(key);
+	if (ifs && temp)
+	{
+		std::string line;
+		while (std::getline(ifs, line))
+		{
+			std::stringstream ss(line);
+			char delimiter = ',';
+			std::string token;
+			std::vector<std::string> v;
+			while (std::getline(ss, token, delimiter))
+			{
+				v.push_back(token);
+			}
+
+			if (v[0] == skey)
+			{
+				temp << value << "\n";
+			}
+			else
+			{
+				temp << line << "\n";
+			}
+		}
+	}
+
+	ifs.close();
+	temp.close();
+
+	std::remove("dataset1.csv");
+	std::rename("temp.txt", "dataset1.csv");
+}
+
+int main()
+{
+	//for (unsigned int i=1; i < 10; ++i)
+		std::cout << fetch(1) << std::endl;
+
+	store(1000, "fyhfjjffffjfjjjfff");
+	return 0;
+}
+
+=========================================================================================================================
