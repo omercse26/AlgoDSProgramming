@@ -836,100 +836,179 @@ int main()
 ==================================================================================================================================
 with parentcache as reference:
 
-#include <iostream>
+#pragma once
 #include <vector>
 #include <type_traits>
 #include <optional>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <variant>
+#include <iostream>
 
 /*
 Interface to model the generic memory operations.
 */
 template <typename Key, typename Value>
-struct MemoryModel
+struct MemoryInterface
 {
 	// fetches the data from the memory identifed by the key.
 	// parameters: key to identify the memory location for the data.
-	// return: data, if the key is found otherwise nullopt (std::optional<Value>).
-	std::optional<Value> fetch(const Key& key);
+	// returns: data, if the key is found otherwise nullopt (std::optional<Value>).
+	virtual std::optional<Value> fetch(const Key& key)
+	{
+		return std::nullopt;
+	}
 
 	// stores the data in the memory identifed by the key.
 	// parameters: key to identify the memory location to store the data.
-	// return: true, if store is successful otherwise false.
-	std::variant<bool, Value> store(const Key& key, const Value& data);
+	// returns: true, if store is successful otherwise false.
+	virtual bool store(const Key& key, const Value& data, bool setdirty = true)
+	{
+		return false;
+	}
 
-	virtual ~MemoryModel() {}
+	// returns true if data is dirty.
+	virtual bool isDirty(const Key&) { return false; }
+
+	virtual ~MemoryInterface() {}
 };
 
-template <typename Key, typename Value, template <class, class, class> class C, template <class, class, class> class... Cs>
-struct MultiLevelCache : MultiLevelCache<Key, Value, Cs...>
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Multi Level Cache : Heirarchy implemented using Recursive Variadic Template
+// Template arguments:
+//                      Key - Type of Key to identify the data in the caches
+//                      Value - Type of the data stored in the caches
+//                      Cache - template template argument that defines CacheMemory of this
+//                              derived class in the heirarchy. Cache closest to the 
+//                              consumer (smallest cache) will be member of the most derived class
+//                              of the instantiation.
+//                      HigherLevelCaches... - variadic template argument list(ordered) that defines caches for
+//                                             up the heirarchy. (recursively expanded.)
+//////////////////////////////////////////////////////////////////////////////////////////////
+template <typename Key, 
+		  typename Value, 
+          template <class, class, class, int> class Cache, 
+          template <class, class, class, int> class... HigherLevelCaches>
+struct MultiLevelCache : protected MultiLevelCache<Key, Value, HigherLevelCaches...>
 {
-	using ParentCache = typename MultiLevelCache<Key, Value, Cs...>::MM;
-	using MM = C<Key, Value, ParentCache>;
+	// Parent Cache Type in the memory heirarchy.
+	using HigherLevelMemory = typename MultiLevelCache<Key, Value, HigherLevelCaches...>::MemoryObject;
 	
-	MM m;
-    
-    MultiLevelCache() : m(MultiLevelCache<Key, Value, Cs...>::m)
-    {
-    	
-    }
+	// numeric level of this cache in the memory heirarchy. Used for logging purpose.
+	// Higher the number, closer to the consumer in the heirachy.
+	// Lower the number, closer to the soure(main) memory in the heirarchy.
+	// Main memory will be at level 0 and the cache closest to the consumer will be at highest level.
+	constexpr static const int level = MultiLevelCache<Key, Value, HigherLevelCaches...>::level + 1;
 
-	std::optional<Value> fetch(const Key& key)
+	// cache implementation of this memory heirarchy 
+	using MemoryObject = Cache<Key, Value, HigherLevelMemory, level>;
+	// cache memory instantiation as member of this class. (value semantics.)
+	MemoryObject memory;
+
+	// Constructor: Reference to the parent cache in the memory heirarchy is passed to this cache.
+	//              In the event of cache miss, the data will be fetched from the parent cache 
+	//              up in the heirarchy.
+	//              Reference to the parent cache is always valid, since the parent cache object
+	//              lives in the immediate base object. The immediate base object is valid
+	//              as long as this derived class object lives.
+	MultiLevelCache() : memory(MultiLevelCache<Key, Value, HigherLevelCaches...>::memory)
 	{
-		return m.fetch(key);
+
 	}
 
-	std::variant<bool, Value> store(const Key& key, Value data)
+	// fetches data from the cache at the current heirarchy identified by the key 
+	std::optional<Value> fetch(const Key& key)
 	{
-		return m.store(key, data);
+		return memory.fetch(key);
+	}
+
+	// stores data in the cache at current heirarchy.
+	bool store(const Key& key, Value data)
+	{
+		return memory.store(key, data);
 	}
 };
 
-template <typename Key, typename Value, template <class, class, class> class C>
-struct MultiLevelCache<Key, Value, C>
-{
-	using MM = C<Key, Value, MemoryModel<Key, Value>>;
-	MM m;
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Multi Level Cache : Base case for the recursive variadic template expansion
+// Defines Top Level Main (source) Memory in the memory heirarchy (most base class).
+// Numeric level of the main memory will be zero.
+// Template arguments:
+//                      Key - Type of Key to identify the data in the source memory
+//                      Value - Type of the data stored in the source memory
+//                      Cache - template template argument that defines top level (level 0) main memory of the 
+//                              memory herirarchy.
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename Key, typename Value, template <class, class, class, int> class SourceMemory>
+struct MultiLevelCache<Key, Value, SourceMemory>
+{
+	// Source (Main) Memory is at the most base class in recursive instantiations.
+	// Level of the main memory is identified as 0.
+	constexpr static const int level = 0;
+
+	// Main memory instatiation as member of this base class.
+	using MemoryObject = SourceMemory<Key, Value, MemoryInterface<Key, Value>, 0>;
+	MemoryObject memory;
+
+	// Fetches data from the source memory.
 	std::optional<Value> fetch(const Key& key)
 	{
-		return m.fetch(key);
+		return memory.fetch(key);
 	}
 
-	std::variant<bool, Value> store(const Key& key, Value data)
+	// stores data from the source memory.
+	// returns true if successful.
+	bool store(const Key& key, Value data)
 	{
-		return m.store(key, data);		
+		return memory.store(key, data);
 	}
 };
 
-template <typename Key, typename Value, typename ParentCache, int cache_size>
-struct CacheMemory : MemoryModel<Key, Value>
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+template<class T> struct dependent_false : std::false_type {};
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// CacheMemory : This template class implements the CacheMemory functionalities.
+// Implements the MemoryInterface functions fetch, store and isDirty
+// and satisfies the requirements for write-back store and cache miss handling.
+// Template arguments:
+//                      Key - Type of Key to identify the data in the cache memory.
+//                      Value - Type of the data stored in the cache memory.
+//                              both Key and Value should implement operator ==() and operator !=()
+//                      HigherLevelMemory - Parent Cache up in the memory heirarchy.
+//                      cachelevel - level of this cache in the memory herirarchy.
+//                                   Lower the number, closer to the main memory.
+//                                   level 1 cache is closest to the source and level max farthest.
+//                      cache_size - compile time value to define the cache size.
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename Key, typename Value, typename HigherLevelMemory, int cachelevel, int cache_size>
+struct CacheMemory : MemoryInterface<Key, Value>
 {
+private:
+
+	// Compile time value to identify the level of the cache in the heirarchy.
+	enum CacheLevel
+	{
+		LEVEL = cachelevel
+	};
+
 	enum class CacheValidity
 	{
-		INVALID,
-		VALID,
-		DIRTY
+		INVALID, // cache entry will be invalid initially
+		VALID,   // data is valid, in sync with main source. 
+		DIRTY    // data has been modified.
 	};
-	struct cache_entry
+
+	// Cache Entry info
+	struct CacheEntry
 	{
 		Key key;
 		Value data;
+		// Validity of the cache entry.
 		CacheValidity validity = CacheValidity::INVALID;
 	};
 
-	std::vector<cache_entry> cache_entries= std::vector<cache_entry>(cache_size);
-	ParentCache& p;
-
-    CacheMemory (ParentCache& pp) : p(pp)
-    {
-       
-    }
-	
-
+	// Function computes hash function from the given key and returns index into the cache.
 	auto getIndex(const Key& key)
 	{
 		if constexpr (std::is_arithmetic_v<Key>)
@@ -938,7 +1017,7 @@ struct CacheMemory : MemoryModel<Key, Value>
 		}
 		else if constexpr (std::is_same_v<Key, std::string>)
 		{
-			// djb2
+			// djb2 hash function algorithm.
 			unsigned long hash = 5381;
 			for (auto ch : key)
 			{
@@ -946,104 +1025,236 @@ struct CacheMemory : MemoryModel<Key, Value>
 			}
 			return hash % cache_size;
 		}
+		else
+		{
+			static_assert(dependent_false<Key>::value,
+				"CacheMemory::hashIndex: Key type should be either string or arithmetic");
+		}
 	}
 
+	// vector of cache entries to store cache information.
+	// vector size is of the given compile time cache size. 
+	std::vector<CacheEntry> cache_entries = std::vector<CacheEntry>(cache_size);
+
+	// Reference to the parent cache up in the memory heirarchy.
+	HigherLevelMemory& higher_level_memory_reference;
+
+public:
+	CacheMemory(HigherLevelMemory& pp) : higher_level_memory_reference(pp)
+	{
+
+	}
+
+	// Destructor:
+	// This is a write-back cache and will have dirty cache entries for the modified data.
+	// Dirty data to be written back to the parent cache, before this cache is destroyed.
+	~CacheMemory()
+	{
+		for (const auto& e : cache_entries)
+		{
+			if (e.validity == CacheValidity::DIRTY)
+			{
+				higher_level_memory_reference.store(e.key, e.data, true);
+			}
+		}
+	}
+
+	// returns true if the data is modified in the cache and yet to be written back.
+	bool isDirty(const Key& key)
+	{
+		auto index = getIndex(key);
+		return (cache_entries[index].validity == CacheValidity::DIRTY);
+	}
+
+	// Implements the fetch interface with cache miss handling
+	// Returns the data from the cache if it exists.
+	// If there is a cache miss, try to get the data from the parent memory
+	// and returns the data after storing it in the cache for further lookups. 
 	std::optional<Value> fetch(const Key & key)
 	{
 		auto index = getIndex(key);
 		if (cache_entries[index].validity != CacheValidity::INVALID && cache_entries[index].key == key)
 		{
+			// Data found at cache
+			std::cout << ">>> fetch::" << "CacheLevel::" << LEVEL << " data for key " << key << " found at cache." << std::endl;
 			return cache_entries[index].data;
 		}
 
-		return std::nullopt;
+		// Cache Miss Handling:
+		// Get the data from memory in higher heirarchy.
+		std::cout << ">>> fetch::" <<"CacheLevel::" << LEVEL << " data for key " << key << " missed at cache. trying higher level source..." << std::endl;
+		auto data_from_higher_memory = higher_level_memory_reference.fetch(key);
+
+		if (data_from_higher_memory.has_value())
+		{
+			std::cout << ">>> fetch::" << "CacheLevel::" << LEVEL << " data for key " << key << " found at higher level source..." << std::endl;
+			// Store a local copy for further look ups.
+			store(key, data_from_higher_memory.value(), higher_level_memory_reference.isDirty(key));
+		}
+
+		return data_from_higher_memory;
 	}
 
-	std::variant<bool, Value> store(const Key & key, const Value & value)
+	// Implements the store interface of the MemoryInterface.
+	// Implements the write back cache functionality.
+	// If setdirty is set to true, it means the value is dirty (modified) from the source.
+	// Returns true if store is successful
+	bool store(const Key & key, const Value & value, bool setdirty = true)
 	{
 		auto index = getIndex(key);
 
-		std::variant<bool, Value> retvalue = true;
+		auto existing_value = cache_entries[index];
+		bool evicted = false;
 		if (cache_entries[index].validity == CacheValidity::INVALID)
 		{
-			cache_entries[index].validity = CacheValidity::VALID;
+			// data is dirty if it is dirty from the source.
+			cache_entries[index].validity = (setdirty) ? CacheValidity::DIRTY : CacheValidity::VALID;
 		}
 		else if (cache_entries[index].key == key && cache_entries[index].data != value)
 		{
+			// if the value is modified for the same data identified by key, mark it as dirty.
 			cache_entries[index].validity = CacheValidity::DIRTY;
 		}
-		else if (cache_entries[index].key != key && cache_entries[index].validity == CacheValidity::DIRTY)
+		else if (cache_entries[index].key != key)
 		{
-			retvalue = cache_entries[index].data;
-			cache_entries[index].validity = CacheValidity::VALID;
+			// cache has already data at the same index. 
+			// The existing data needs to be evicted to make way for the new data.
+			evicted = true;
+			cache_entries[index].validity = (setdirty) ? CacheValidity::DIRTY : CacheValidity::VALID;
 		}
 
 		cache_entries[index].key = key;
 		cache_entries[index].data = value;
 
+		bool retvalue = true;
+		if (evicted)
+		{
+			// If the exising data in the cache is evicted, propagate it to the memory at the 
+			// next higher level.
+			std::cout << "<<< store::" << "CacheLevel::" << LEVEL << " data for key " << existing_value.key << " evicted to higher memory";
+			std::cout << " as " << ((existing_value.validity == CacheValidity::DIRTY) ? "dirty" : "valid");
+			std::cout << " to store new key : " << key << std::endl;
+			retvalue = higher_level_memory_reference.store(existing_value.key, existing_value.data, (existing_value.validity == CacheValidity::DIRTY));
+		}
+
+		if (retvalue)
+		{
+			std::cout << "<<< store::" << "CacheLevel::" << LEVEL << " data for key " << key << " stored at cache";
+			std::cout << " as " << ((cache_entries[index].validity == CacheValidity::DIRTY) ? "dirty" : "valid." )<< std::endl;
+		}
+
 		return retvalue;
 	}
 };
 
-template <typename Key, typename Value, typename Converter, typename = MemoryModel<Key, Value>>
-struct FileMemory : MemoryModel<Key, Value>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cstdio>
+#include <experimental/filesystem>
+
+#include "MultiLevelCache.h"
+
+namespace fs = std::experimental::filesystem;
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// FileDataSource : This template class implements the Main Data Source functionalities.
+// This is to simulate the slow main memory.
+// Multilevel cache can be used the cache contents of the file source.
+// Implements the MemoryInterface functions fetch and store on the datasource.txt file.
+// Template arguments:
+//                      Key - Type of Key to identify the data in the file.
+//                      Value - Type of the data.
+//                      Converter - Converts the value to/from the type supported by the filesystem. 
+//////////////////////////////////////////////////////////////////////////////////////////////
+template <typename Key, typename Value, typename Converter, typename = MemoryInterface<Key, Value>, int = 0>
+struct FileDataSource : MemoryInterface<Key, Value>
 {
+	// Fetches the data from the file identified by key.
 	std::optional<Value> fetch(const Key& key)
 	{
-		std::ifstream ifs("memory.csv");
-		if (ifs)
+		std::ifstream ifs(fs::current_path().generic_string() +"/datasource.txt");
+		if (!ifs.is_open())
 		{
-			std::string line;
-			while (std::getline(ifs, line))
-			{
-				Value v = Converter::string_to_object(line);
+			std::cerr << "Current path is " << fs::current_path().generic_string() << std::endl;
+			std::cerr << "source file datasource.txt not found" << std::endl;
+			return std::nullopt;
+		}
 
-				if (v.key == key)
-				{
-					return v;
-				}
+		std::string line;
+		while (std::getline(ifs, line))
+		{
+			Value v = Converter::string_to_data(line);
+
+			if (v.key == key)
+			{
+				return v;
 			}
 		}
 		return std::nullopt;
 	}
 
-	std::variant<bool, Value> store(const Key& key, const Value& value)
+	// Stores the data to the file.
+	bool store(const Key& key, const Value& value, bool setdirty= true)
 	{
 		try
 		{
-			std::ifstream ifs("memory.csv");
-			std::ofstream temp("temp.txt");
-			bool found = false;
-			if (ifs && temp)
-			{
-				std::string line;
-				while (std::getline(ifs, line))
-				{
-					Value v = Converter::string_to_object(line);
+			std::ifstream ifs(fs::current_path().generic_string()+"/datasource.txt");
 
-					if (v.key == key)
-					{
-						temp << Converter::to_string(value) << std::endl;
-						found = true;
-					}
-					else
-					{
-						temp << line << std::endl;
-					}
-				}
-				if (!found)
-				{
-					temp << Converter::to_string(value) << std::endl;
-				}
+			if (!ifs.is_open())
+			{
+				std::cerr << "Current path is " << fs::current_path().generic_string() << std::endl;
+				std::cerr << "source file datasource.txt not found" << std::endl;
+				return false;
 			}
 
+			std::ofstream temp("temp.txt");
+
+			if (!temp.is_open())
+			{
+				std::cerr << "temp file temp.txt cannot be opened" << std::endl;
+				ifs.close();
+				return false;
+			}
+			bool found = false;
+			
+			std::string line;
+			while (std::getline(ifs, line))
+			{
+				Value v = Converter::string_to_data(line);
+
+				if (v.key == key)
+				{
+					temp << Converter::to_string(value) << std::endl;
+					found = true;
+				}
+				else
+				{
+					temp << line << std::endl;
+				}
+			}
+			if (!found)
+			{
+				temp << Converter::to_string(value) << std::endl;
+			}
+			
 
 			ifs.close();
 			temp.close();
 
-			std::remove("memory.csv");
-			std::rename("temp.txt", "memory.csv");
-			return true;
+			std::string srcfile = (fs::current_path().generic_string() + "/datasource.txt");
+			auto retvalue = std::remove(srcfile.c_str());
+			if (retvalue == 0)
+			{
+				retvalue = std::rename("temp.txt", srcfile.c_str());
+			}
+
+			if (retvalue != 0)
+			{
+				std::cout << "rewriting " << srcfile << " failed " << std::endl;
+			}
+
+			return (retvalue == 0);
 		}
 
 		catch (...)
@@ -1054,7 +1265,9 @@ struct FileMemory : MemoryModel<Key, Value>
 	}
 };
 
-struct FileEntry
+// Type of the data stored in the file.
+// Implements helper functions to facilitate conversion to and from std::string.
+struct Data
 {
 	unsigned long key;
 	std::string dog_name;
@@ -1063,12 +1276,12 @@ struct FileEntry
 	std::string breed;
 	std::string license_issued_year;
 
-	static std::string to_string(const FileEntry& e)
+	static std::string to_string(const Data& e)
 	{
 		return std::to_string(e.key) + "," + e.dog_name + "," + e.gender + "," + e.year_of_birth + "," + e.breed + "," + e.license_issued_year;
 	}
 
-	static FileEntry string_to_object(const std::string& line)
+	static Data string_to_data(const std::string& line)
 	{
 		std::stringstream ss(line);
 		char delimiter = ',';
@@ -1079,7 +1292,7 @@ struct FileEntry
 			v.push_back(token);
 		}
 
-		FileEntry object;
+		Data object;
 		object.key = std::atol(v[0].c_str());
 		object.dog_name = v[1];
 		object.gender = v[2];
@@ -1090,7 +1303,7 @@ struct FileEntry
 		return object;
 	}
 
-	bool operator == (const FileEntry& e) const
+	bool operator == (const Data& e) const
 	{
 		return e.key == key &&
 			e.dog_name == dog_name &&
@@ -1100,49 +1313,76 @@ struct FileEntry
 			e.license_issued_year == license_issued_year;
 	}
 
-	bool operator != (const FileEntry& e) const
+	bool operator != (const Data& e) const
 	{
 		return !(e == *this);
 	}
 };
 
-template <typename K, typename V, typename ParentCache>
-using C1 = CacheMemory<K, V, ParentCache, 4096>;
+// Partial template specialization of Cache of size 10.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using CacheOfSize10 = CacheMemory<K, V, HigherLevelMemory, level, 10>;
 
-//template <typename K, typename V>
-//using C11 = CacheMemory<K, V, 10000>;
-//
-//template <typename K, typename V>
-//using C12 = CacheMemory<K, V, 20000>;
-//
-//template <typename K, typename V>
-//using C13 = CacheMemory<K, V, 30000>;
+// Partial template specialization of Cache of size 20.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using CacheOfSize20 = CacheMemory<K, V, HigherLevelMemory, level, 20>;
 
-template <typename K, typename V, typename ParentCache>
-using C2 = FileMemory<K, V, FileEntry, ParentCache>;
+// Partial template specialization of Cache of size 10000.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using CacheOfSize10000 = CacheMemory<K, V, HigherLevelMemory, level, 10000>;
+
+// Partial template specialization of Cache of size 20000.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using CacheOfSize20000 = CacheMemory<K, V, HigherLevelMemory, level, 20000>;
+
+// Partial template specialization of Cache of size 30000.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using CacheOfSize30000 = CacheMemory<K, V, HigherLevelMemory, level, 30000>;
+
+// File Data source for which multi level caching has to be added.
+template <typename K, typename V, typename HigherLevelMemory, int level>
+using DataSource = FileDataSource<K, V, Data, HigherLevelMemory, level>;
 
 int main()
 {
-	MultiLevelCache<int, FileEntry, C1, C2> mm;
+	// MultiLevelCache instantiation.
+	// Key is int and Value is Data for the memory interfaces.
+	// Followed by ordered list of memory heirarchies with top level main source memory at the last.
+	// MultiLevelCache will instantiate the ordered list of the memories recursively with the last 
+	// main memory source in the top level base class instantiation.
+	MultiLevelCache<int, Data, CacheOfSize10, CacheOfSize20, CacheOfSize10000, CacheOfSize20000, CacheOfSize30000, DataSource> multilevelcache;
 	
-	auto v = mm.fetch(10);
+	auto v = multilevelcache.fetch(1000);
 	if (v.has_value())
 	{
-		std::cout << FileEntry::to_string(v.value()) << std::endl;
+		std::cout << Data::to_string(v.value()) << std::endl;
 	}
 
-	auto a = FileEntry::string_to_object("10,2,3,4,5,66");
-	mm.store(10, a);
+	auto a = Data::string_to_data("1001,2,3,4,6,123454554");
+	multilevelcache.store(1001, a);
 
-	v = mm.fetch(10);
+	v = multilevelcache.fetch(1000);
 	if (v.has_value())
 	{
-		std::cout << FileEntry::to_string(v.value()) << std::endl;
+		std::cout << Data::to_string(v.value()) << std::endl;
 	}
 
-	a = FileEntry::string_to_object("10,2,3,4,5,666");
-	mm.store(10, a);
+	v = multilevelcache.fetch(10);
+	if (v.has_value())
+	{
+		std::cout << Data::to_string(v.value()) << std::endl;
+	}
+
+	/*a = Data::string_to_data("10,2,3,4,5,23456");
+	multilevelcache.store(10, a);*/
+
+	v = multilevelcache.fetch(1000);
+	if (v.has_value())
+	{
+		std::cout << Data::to_string(v.value()) << std::endl;
+	}
 
 	return 0;
+}
 }
 ========================================================================================================================
