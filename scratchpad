@@ -317,7 +317,7 @@ struct CacheMemory : MemoryModel<Key, Value>
 		CacheValidity validity = CacheValidity::INVALID;
 	};
 
-	constexpr static auto array_size = size / sizeof(cache_entry);
+	constexpr static auto array_size = size;
 	std::array<cache_entry, array_size> cache_entries;
 
 	auto getIndex(Key key)
@@ -511,6 +511,7 @@ struct MultiLevelCache<Key, Value, I>
 		return m.store(key, data);
 	}
 };
+
 
 int main()
 { 
