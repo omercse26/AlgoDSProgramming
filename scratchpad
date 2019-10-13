@@ -520,3 +520,256 @@ int main()
 }
 
 =========================================================================================================================
+
+#include <array>
+#include <type_traits>
+#include <optional>
+#include <vector>
+#include <fstream>
+#include <sstream>
+
+/*
+Interface to model the generic memory operations.
+*/
+template <typename Key, typename Value>
+struct MemoryModel
+{
+    // fetches the data from the memory identifed by the key.
+	// parameters: key to identify the memory location for the data.
+	// return: data, if the key is found otherwise nullopt (std::optional<Value>).
+	std::optional<Value> fetch(Key key);
+
+	// stores the data in the memory identifed by the key.
+	// parameters: key to identify the memory location to store the data.
+	// return: true, if store is successful otherwise false.
+	std::optional<Value> store(Key key, Value data);
+
+	virtual ~MemoryModel() {}
+};
+
+/*
+*/
+
+template <typename Key, typename Value, int size>
+struct CacheMemory : MemoryModel<Key, Value>
+{
+	enum class CacheValidity
+	{
+		INVALID,
+		VALID,
+		DIRTY
+	};
+	struct cache_entry
+	{
+		Key key;
+		Value data;
+		CacheValidity validity = CacheValidity::INVALID;
+	};
+
+	constexpr static auto array_size = size;
+	std::array<cache_entry, array_size> cache_entries;
+
+	auto getIndex(Key key)
+	{
+		if constexpr (std::is_arithmetic_v<Key>)
+		{
+			return static_cast<unsigned long>(key) % array_size;
+		}
+		else if constexpr (std::is_same_v<Key, std::string>)
+		{
+			// djb2
+			unsigned long hash = 5381;
+			for (auto ch : key)
+			{
+				hash = (hash << 5) + hash + ch; /* hash * 33 + c */
+			}
+			return hash % array_size;
+		}
+	}
+
+	std::optional<Value> fetch(Key key)
+	{
+		auto index = getIndex(key);
+		if (cache_entries[index].validity != CacheValidity::INVALID && cache_entries[index].key == key)
+		{
+			return cache_entries[index].data;
+		}
+
+		return std::nullopt;
+	}
+
+	std::optional<Value> store(Key key, Value value)
+	{
+		auto index = getIndex(key);
+
+		std::optional<Value> oldvalue = std::nullopt;
+		if (cache_entries[index].validity == CacheValidity::INVALID)
+		{
+			cache_entries[index].validity = CacheValidity::VALID;
+		}
+		else if (cache_entries[index].key == key && cache_entries[index].data != value)
+		{
+			cache_entries[index].validity = CacheValidity::DIRTY;
+		}
+		else if (cache_entries[index].key != key && cache_entries[index].validity == CacheValidity::DIRTY)
+		{
+			oldvalue = cache_entries[index].data;
+			cache_entries[index].validity = CacheValidity::VALID;
+		}
+
+		cache_entries[index].key = key;
+		cache_entries[index].data = value;
+
+		return oldvalue;
+	}
+};
+
+template <typename Key, typename Value>
+struct FileMemory : MemoryModel<Key, Value>
+{
+	std::optional<Value> fetch(Key key)
+	{
+		std::ifstream ifs("memory.csv");
+
+		std::string skey = std::to_string(key);
+		if (ifs)
+		{
+			std::string line;
+			while (std::getline(ifs, line))
+			{
+				std::stringstream ss(line);
+				char delimiter = ',';
+				std::string token;
+				std::vector<std::string> v;
+				while (std::getline(ss, token, delimiter))
+				{
+					v.push_back(token);
+				}
+
+				if (v[0] == skey)
+				{
+					return line;
+				}
+			}
+		}
+		return std::nullopt;
+	}
+
+	std::optional<Value> store(Key key, Value value, bool)
+	{
+		try
+		{
+			std::ifstream ifs("memory.csv");
+			std::ofstream temp;
+			temp.open("temp.txt");
+			std::string skey = std::to_string(key);
+			if (ifs && temp)
+			{
+				std::string line;
+				while (std::getline(ifs, line))
+				{
+					std::stringstream ss(line);
+					char delimiter = ',';
+					std::string token;
+					std::vector<std::string> v;
+					while (std::getline(ss, token, delimiter))
+					{
+						v.push_back(token);
+					}
+
+					if (v[0] == skey)
+					{
+						if constexpr (std::is_arithmetic_v<Value>)
+						{
+							temp << std::to_string(value) << std::endl;
+						}
+						else if constexpr (std::is_same_v<Value, std::string>)
+						{
+							temp << value << std::endl;
+						}
+					}
+					else
+					{
+						temp << line << std::endl;
+					}
+				}
+			}
+
+			ifs.close();
+			temp.close();
+
+			std::remove("memory.csv");
+			std::rename("temp.txt", "memory.csv");
+			return std::nullopt;
+		}
+
+		catch (...)
+		{
+			return std::nullopt;
+		}
+
+	}
+
+};
+
+template <typename Key, typename Value, template <class, class> class C, template <class, class> class... Cs> 
+struct MultiLevelCache : MultiLevelCache<Key, Value, Cs...>
+{
+	using MM = C<Key, Value>;
+	MM m;
+
+	std::optional<Value> fetch(Key key)
+	{
+		if (auto value = m.fetch(key); value.has_value())
+		{
+			return value;
+		}
+
+		// else fetch the data from the memory in the next higher heirarchy.
+		auto value = MultiLevelCache<Key, Value, Cs...>::fetch(key);
+
+		// Store it in the cache first.
+		m.store(key, value.value());
+		return value;
+	}
+	
+	bool store(Key key, Value data)
+	{
+		auto old_data = m.store(data);
+
+		if (old_data.has_value())
+		{
+			MultiLevelCache<Key, Value, Cs...>::store(key, old_data.value());
+		}
+	}
+};
+
+template <typename Key, typename Value, template <class, class> class C>
+struct MultiLevelCache<Key, Value, C>
+{
+	using MM = C<Key, Value>;
+	MM m;
+
+	std::optional<Value> fetch(Key key)
+	{
+		return m.fetch(key);
+	}
+
+	std::optional<Value> store(Key key, Value data)
+	{
+		return m.store(key, data);
+	}
+};
+
+template <typename K, typename V>
+using C1 = CacheMemory<K,V,4096>;
+
+template <typename K, typename V>
+using C2 = FileMemory<K,V>;
+
+int main()
+{ 
+  MultiLevelCache<int, std::string, C1, C2> mm;
+  mm.fetch(88);
+}
+==================================================================================================================================
