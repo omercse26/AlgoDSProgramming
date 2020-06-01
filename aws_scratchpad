@@ -1,0 +1,1704 @@
+ng new airtel
+
+ng serve --open
+
+mvn io.quarkus:quarkus-maven-plugin:1.4.2.Final:create \
+    -DprojectGroupId=org.omer \
+    -DprojectArtifactId=airtel \
+    -DclassName="org.acme.airtel.Main" \
+    -Dpath="/airtel"
+	
+cd airtel
+
+./mvnw compile quarkus:dev
+
+
+package org.acme.getting.started;
+
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class GreetingService {
+
+    public String greeting(String name) {
+        return "hello " + name;
+    }
+
+}
+
+package org.acme.getting.started;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
+
+@Path("/hello")
+public class GreetingResource {
+
+    @Inject
+    GreetingService service;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/greeting/{name}")
+    public String greeting(@PathParam String name) {
+        return service.greeting(name);
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String hello() {
+        return "hello";
+    }
+}
+
+================================================================================================
+Angular:
+-------
+
+ng new portfolio --skipGit --routing=true --style=scss
+ng generate component Portfolio
+ng generate service Stock
+
+getStockLatestPrice(symbol: string): Observable<StockLatestPriceResponse> {
+    return this.http.get<StockLatestPriceResponse>(`/stocks/${symbol}/latestPrice`);
+  }
+  
+ 
+proxy.proxy.conf.json:
+ 
+	{
+	  "/stocks": {
+		"target": "http://localhost:8080",
+		"secure": false
+	  }
+	}
+
+ng serve --proxy-config proxy.conf.json
+
+ng build --prod
+
+file:angular.json
+
+  "configurations": {
+    "production": {
+      "outputPath": "../resources/META-INF/resources",
+
+
+mvn package -Pnative -Dquarkus.native.container-build=true -Dmaven.test.skip
+
+docker build -f src/main/docker/Dockerfile.native -t quarkus/portfolio .
+docker run -i --rm -p 8080:80 quarkus/portfolio
+
+
+================================================================================================
+
+https://github.com/aws-samples/aws-modern-application-workshop/tree/java/module-1
+
+
+Cloud 9:
+--------
+
+module 1:
+--------
+git clone -b java https://github.com/aws-samples/aws-modern-application-workshop.git
+cd aws-modern-application-workshop
+aws s3 mb s3://omercse26
+aws s3 ls s3://omercse26
+aws s3 cp ~/environment/aws-modern-application-workshop/module-1/web/index.html s3://omercse26/index.html
+curl -I "https://omercse26.s3-$(aws configure get region).amazonaws.com/index.html"
+
+aws s3api put-bucket-policy --bucket omercse26 --policy file://~/environment/aws-modern-application-workshop/module-1/aws-cli/website-bucket-policy.json
+
+curl -I "https://omercse26.s3-$(aws configure get region).amazonaws.com/index.html"
+curl -I "https://omercse26.s3-$(aws configure get region).amazonaws.com"
+
+aws s3 website s3://omercse26 --index-document index.html
+
+# No HTTPS and Added website
+http://omercse26.s3-website.us-east-2.amazonaws.com/
+
+
+
+
+Module 2:
+---------
+
+aws cloudformation create-stack --stack-name MythicalMysfitsCoreStack --capabilities CAPABILITY_NAMED_IAM --template-body file://~/environment/aws-modern-application-workshop/module-2/cfn/core.yml   
+
+aws cloudformation describe-stacks --stack-name MythicalMysfitsCoreStack
+
+ubuntu:~/environment/aws-modern-application-workshop (java) $ aws cloudformation describe-stacks --stack-name MythicalMysfitsCoreStack
+{
+    "Stacks": [
+        {
+            "StackId": "arn:aws:cloudformation:us-east-2:087589128029:stack/MythicalMysfitsCoreStack/0976dce0-a374-11ea-8968-060a435a9e52",
+            "StackName": "MythicalMysfitsCoreStack",
+            "Description": "This stack deploys the core network infrastructure and IAM resources to be used for a service hosted in Amazon ECS using AWS Fargate.",
+            "CreationTime": "2020-05-31T19:22:16.050Z",
+            "RollbackConfiguration": {},
+            "StackStatus": "CREATE_COMPLETE",
+            "DisableRollback": false,
+            "NotificationARNs": [],
+            "Capabilities": [
+                "CAPABILITY_NAMED_IAM"
+            ],
+            "Outputs": [
+                {
+                    "OutputKey": "CurrentAccount",
+                    "OutputValue": "087589128029",
+                    "Description": "REPLACE_ME_ACCOUNT_ID",
+                    "ExportName": "MythicalMysfitsCoreStack:CurrentAccount"
+                },
+                {
+                    "OutputKey": "FargateContainerSecurityGroup",
+                    "OutputValue": "sg-035906b0dc10dfd10",
+                    "Description": "REPLACE_ME_SECURITY_GROUP_ID",
+                    "ExportName": "MythicalMysfitsCoreStack:FargateContainerSecurityGroup"
+                },
+                {
+                    "OutputKey": "PublicSubnetOne",
+                    "OutputValue": "subnet-02f7fa2445ddd1a53",
+                    "Description": "REPLACE_ME_PUBLIC_SUBNET_ONE",
+                    "ExportName": "MythicalMysfitsCoreStack:PublicSubnetOne"
+                },
+                {
+                    "OutputKey": "ECSTaskRole",
+                    "OutputValue": "arn:aws:iam::087589128029:role/MythicalMysfitsCoreStack-ECSTaskRole-1TUDEOVC8WKK6",
+                    "Description": "REPLACE_ME_ECS_TASK_ROLE_ARN",
+                    "ExportName": "MythicalMysfitsCoreStack:ECSTaskRole"
+                },
+                {
+                    "OutputKey": "PrivateSubnetTwo",
+                    "OutputValue": "subnet-0f18a50410f682fa7",
+                    "Description": "REPLACE_ME_PRIVATE_SUBNET_TWO",
+                    "ExportName": "MythicalMysfitsCoreStack:PrivateSubnetTwo"
+                },
+                {
+                    "OutputKey": "CurrentRegion",
+                    "OutputValue": "us-east-2",
+                    "Description": "REPLACE_ME_REGION",
+                    "ExportName": "MythicalMysfitsCoreStack:CurrentRegion"
+                },
+                {
+                    "OutputKey": "VPCId",
+                    "OutputValue": "vpc-0f030e4369247bf2a",
+                    "Description": "REPLACE_ME_VPC_ID",
+                    "ExportName": "MythicalMysfitsCoreStack:VPCId"
+                },
+                {
+                    "OutputKey": "PublicSubnetTwo",
+                    "OutputValue": "subnet-0cb5f3e1317a9e9b2",
+                    "Description": "REPLACE_ME_PUBLIC_SUBNET_TWO",
+                    "ExportName": "MythicalMysfitsCoreStack:PublicSubnetTwo"
+                },
+                {
+                    "OutputKey": "CodeBuildRole",
+                    "OutputValue": "arn:aws:iam::087589128029:role/MythicalMysfitsServiceCodeBuildServiceRole",
+                    "Description": "REPLACE_ME_CODEBUILD_ROLE_ARN",
+                    "ExportName": "MythicalMysfitsCoreStack:MythicalMysfitsServiceCodeBuildServiceRole"
+                },
+                {
+                    "OutputKey": "CodePipelineRole",
+                    "OutputValue": "arn:aws:iam::087589128029:role/MythicalMysfitsServiceCodePipelineServiceRole",
+                    "Description": "REPLACE_ME_CODEPIPELINE_ROLE_ARN",
+                    "ExportName": "MythicalMysfitsCoreStack:MythicalMysfitsServiceCodePipelineServiceRole"
+                },
+                {
+                    "OutputKey": "EcsServiceRole",
+                    "OutputValue": "arn:aws:iam::087589128029:role/MythicalMysfitsCoreStack-EcsServiceRole-1SVD4P0JN9OYZ",
+                    "Description": "REPLACE_ME_ECS_SERVICE_ROLE_ARN",
+                    "ExportName": "MythicalMysfitsCoreStack:EcsServiceRole"
+                },
+                {
+                    "OutputKey": "PrivateSubnetOne",
+                    "OutputValue": "subnet-03830228a89d657e2",
+                    "Description": "REPLACE_ME_PRIVATE_SUBNET_ONE",
+                    "ExportName": "MythicalMysfitsCoreStack:PrivateSubnetOne"
+                }
+            ],
+            "Tags": [],
+            "EnableTerminationProtection": false,
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}
+
+sudo apt-get install -y java-1.8.0-openjdk-devel
+update-java-alternatives --list
+# use jdk7
+sudo update-java-alternatives --set java-7-oracle
+
+# use jdk8
+sudo update-java-alternatives --set java-8-oracle
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app/service (java) $ aws sts get-caller-identity
+{
+    "UserId": "087589128029",
+    "Account": "087589128029",
+    "Arn": "arn:aws:iam::087589128029:root"
+}
+
+docker build . -t 087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ docker build . -t 087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest
+Sending build context to Docker daemon  16.27MB
+Step 1/6 : FROM java:8
+8: Pulling from library/java
+5040bd298390: Pull complete 
+fce5728aad85: Pull complete 
+76610ec20bf5: Pull complete 
+60170fec2151: Pull complete 
+e98f73de8f0d: Pull complete 
+11f7af24ed9c: Pull complete 
+49e2d6393f32: Pull complete 
+bb9cdec9c7f3: Pull complete 
+Digest: sha256:c1ff613e8ba25833d2e1940da0940c3824f03f802c449f3d1815a66b7f8c0e9d
+Status: Downloaded newer image for java:8
+ ---> d23bdf5b1b1b
+Step 2/6 : VOLUME /tmp
+ ---> Running in a10c778e04a5
+Removing intermediate container a10c778e04a5
+ ---> 8e0bddbded9e
+Step 3/6 : ADD service/target/mythical-mysfits-1.0-SNAPSHOT.jar app.jar
+ ---> 9fbde29155fd
+Step 4/6 : EXPOSE 8080
+ ---> Running in 70ace1e5faf0
+Removing intermediate container 70ace1e5faf0
+ ---> 3d78b16dc60e
+Step 5/6 : RUN bash -c 'touch /app.jar'
+ ---> Running in af711e53b9b2
+Removing intermediate container af711e53b9b2
+ ---> 2ef3608b8c63
+Step 6/6 : ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ ---> Running in 0f05bc931a3e
+Removing intermediate container 0f05bc931a3e
+ ---> c21b7165783b
+Successfully built c21b7165783b
+Successfully tagged 087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest
+
+
+docker run -p 8080:8080 087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws ecr create-repository --repository-name mythicalmysfits/service
+{
+    "repository": {
+        "repositoryArn": "arn:aws:ecr:us-east-2:087589128029:repository/mythicalmysfits/service",
+        "registryId": "087589128029",
+        "repositoryName": "mythicalmysfits/service",
+        "repositoryUri": "087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service",
+        "createdAt": 1590954782.0,
+        "imageTagMutability": "MUTABLE",
+        "imageScanningConfiguration": {
+            "scanOnPush": false
+        }
+    }
+}
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ $(aws ecr get-login --no-include-email)
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+WARNING! Your password will be stored unencrypted in /home/ubuntu/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+
+docker push 087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest
+
+aws ecr describe-images --repository-name mythicalmysfits/service
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws ecr describe-images --repository-name mythicalmysfits/service
+{
+    "imageDetails": [
+        {
+            "registryId": "087589128029",
+            "repositoryName": "mythicalmysfits/service",
+            "imageDigest": "sha256:7f56b933404bf5188f3cc8b90d1180606bcc22bc1913338654714a74884ab132",
+            "imageTags": [
+                "latest"
+            ],
+            "imageSizeInBytes": 276280027,
+            "imagePushedAt": 1590955031.0
+        }
+    ]
+}
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws ecs create-cluster --cluster-name MythicalMysfits-Cluster
+{
+    "cluster": {
+        "clusterArn": "arn:aws:ecs:us-east-2:087589128029:cluster/MythicalMysfits-Cluster",
+        "clusterName": "MythicalMysfits-Cluster",
+        "status": "ACTIVE",
+        "registeredContainerInstancesCount": 0,
+        "runningTasksCount": 0,
+        "pendingTasksCount": 0,
+        "activeServicesCount": 0,
+        "statistics": [],
+        "tags": [],
+        "settings": [
+            {
+                "name": "containerInsights",
+                "value": "disabled"
+            }
+        ],
+        "capacityProviders": [],
+        "defaultCapacityProviderStrategy": []
+    }
+}
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws ecs register-task-definition --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/task-definition.json
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-2:087589128029:task-definition/mythicalmysfitsservice:1",
+        "containerDefinitions": [
+            {
+                "name": "MythicalMysfits-Service",
+                "image": "087589128029.dkr.ecr.us-east-2.amazonaws.com/mythicalmysfits/service:latest",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 8080,
+                        "hostPort": 8080,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "mythicalmysfits-logs",
+                        "awslogs-region": "us-east-2",
+                        "awslogs-stream-prefix": "awslogs-mythicalmysfits-service"
+                    }
+                }
+            }
+        ],
+        "family": "mythicalmysfitsservice",
+        "taskRoleArn": "arn:aws:iam::087589128029:role/MythicalMysfitsCoreStack-ECSTaskRole-1TUDEOVC8WKK6",
+        "executionRoleArn": "arn:aws:iam::087589128029:role/MythicalMysfitsCoreStack-EcsServiceRole-1SVD4P0JN9OYZ",
+        "networkMode": "awsvpc",
+        "revision": 1,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "256",
+        "memory": "512"
+    }
+}
+
+
+aws elbv2 create-load-balancer --name mysfits-nlb --scheme internet-facing --type network --subnets subnet-02f7fa2445ddd1a53 subnet-0cb5f3e1317a9e9b2 > ~/environment/nlb-output.json
+
+{
+    "LoadBalancers": [
+        {
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78",
+            "DNSName": "mysfits-nlb-df21aa622e015a78.elb.us-east-2.amazonaws.com",
+            "CanonicalHostedZoneId": "ZLMOA37VPKANP",
+            "CreatedTime": "2020-05-31T20:35:58.033Z",
+            "LoadBalancerName": "mysfits-nlb",
+            "Scheme": "internet-facing",
+            "VpcId": "vpc-0f030e4369247bf2a",
+            "State": {
+                "Code": "provisioning"
+            },
+            "Type": "network",
+            "AvailabilityZones": [
+                {
+                    "ZoneName": "us-east-2a",
+                    "SubnetId": "subnet-02f7fa2445ddd1a53",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-east-2b",
+                    "SubnetId": "subnet-0cb5f3e1317a9e9b2",
+                    "LoadBalancerAddresses": []
+                }
+            ],
+            "IpAddressType": "ipv4"
+        }
+    ]
+}
+
+aws elbv2 create-target-group --name MythicalMysfits-TargetGroup --port 8080 --protocol TCP --target-type ip --vpc-id vpc-0f030e4369247bf2a --health-check-interval-seconds 10 --health-check-path / --health-check-protocol HTTP --healthy-threshold-count 3 --unhealthy-threshold-count 3 > opn
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ cat opn
+{
+    "TargetGroups": [
+        {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:targetgroup/MythicalMysfits-TargetGroup/e45dc21cbe5c4486",
+            "TargetGroupName": "MythicalMysfits-TargetGroup",
+            "Protocol": "TCP",
+            "Port": 8080,
+            "VpcId": "vpc-0f030e4369247bf2a",
+            "HealthCheckProtocol": "HTTP",
+            "HealthCheckPort": "traffic-port",
+            "HealthCheckEnabled": true,
+            "HealthCheckIntervalSeconds": 10,
+            "HealthCheckTimeoutSeconds": 6,
+            "HealthyThresholdCount": 3,
+            "UnhealthyThresholdCount": 3,
+            "HealthCheckPath": "/",
+            "Matcher": {
+                "HttpCode": "200-399"
+            },
+            "TargetType": "ip"
+        }
+    ]
+}
+
+aws elbv2 create-listener --default-actions TargetGroupArn=arn:aws:elasticloadbalancing:us-east-2:087589128029:targetgroup/MythicalMysfits-TargetGroup/e45dc21cbe5c4486,Type=forward --load-balancer-arn arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78 --port 80 --protocol TCP
+
+{
+    "Listeners": [
+        {
+            "ListenerArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:listener/net/mysfits-nlb/df21aa622e015a78/e047f8fa0a84cffd",
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78",
+            "Port": 80,
+            "Protocol": "TCP",
+            "DefaultActions": [
+                {
+                    "Type": "forward",
+                    "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:targetgroup/MythicalMysfits-TargetGroup/e45dc21cbe5c4486",
+                    "ForwardConfig": {
+                        "TargetGroups": [
+                            {
+                                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:targetgroup/MythicalMysfits-TargetGroup/e45dc21cbe5c4486"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
+
+
+aws ecs create-service --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/service-definition.json
+
+
+
+{
+    "service": {
+        "serviceArn": "arn:aws:ecs:us-east-2:087589128029:service/MythicalMysfits-Service",
+        "serviceName": "MythicalMysfits-Service",
+        "clusterArn": "arn:aws:ecs:us-east-2:087589128029:cluster/MythicalMysfits-Cluster",
+        "loadBalancers": [
+            {
+                "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:087589128029:targetgroup/MythicalMysfits-TargetGroup/e45dc21cbe5c4486",
+                "containerName": "MythicalMysfits-Service",
+                "containerPort": 8080
+            }
+        ],
+        "serviceRegistries": [],
+        "status": "ACTIVE",
+        "desiredCount": 1,
+        "runningCount": 0,
+        "pendingCount": 0,
+        "launchType": "FARGATE",
+        "platformVersion": "LATEST",
+        "taskDefinition": "arn:aws:ecs:us-east-2:087589128029:task-definition/mythicalmysfitsservice:1",
+        "deploymentConfiguration": {
+            "maximumPercent": 200,
+            "minimumHealthyPercent": 0
+        },
+        "deployments": [
+            {
+                "id": "ecs-svc/3908116470040428642",
+                "status": "PRIMARY",
+                "taskDefinition": "arn:aws:ecs:us-east-2:087589128029:task-definition/mythicalmysfitsservice:1",
+                "desiredCount": 1,
+                "pendingCount": 0,
+                "runningCount": 0,
+                "createdAt": 1590958036.444,
+                "updatedAt": 1590958036.444,
+                "launchType": "FARGATE",
+                "platformVersion": "1.3.0",
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-03830228a89d657e2",
+                            "subnet-0f18a50410f682fa7"
+                        ],
+                        "securityGroups": [
+                            "sg-035906b0dc10dfd10"
+                        ],
+                        "assignPublicIp": "DISABLED"
+                    }
+                }
+            }
+        ],
+        "roleArn": "arn:aws:iam::087589128029:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+        "events": [],
+        "createdAt": 1590958036.444,
+        "placementConstraints": [],
+        "placementStrategy": [],
+        "networkConfiguration": {
+            "awsvpcConfiguration": {
+                "subnets": [
+                    "subnet-03830228a89d657e2",
+                    "subnet-0f18a50410f682fa7"
+                ],
+                "securityGroups": [
+                    "sg-035906b0dc10dfd10"
+                ],
+                "assignPublicIp": "DISABLED"
+            }
+        },
+        "healthCheckGracePeriodSeconds": 0,
+        "schedulingStrategy": "REPLICA",
+        "enableECSManagedTags": false,
+        "propagateTags": "NONE"
+    }
+}
+
+
+mysfits-nlb-df21aa622e015a78.elb.us-east-2.amazonaws.com
+
+http://mysfits-nlb-df21aa622e015a78.elb.us-east-2.amazonaws.com/mysfits
+
+aws s3 cp ~/environment/aws-modern-application-workshop/module-2/web/index.html s3://omercse26/index.html
+
+aws s3 mb s3://omercse26-cicd
+
+aws s3api put-bucket-policy --bucket omercse26-cicd --policy file://~/environment/aws-modern-application-workshop/module-2/aws-cli/artifacts-bucket-policy.json
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws codecommit create-repository --repository-name MythicalMysfitsService-Repository
+{
+    "repositoryMetadata": {
+        "accountId": "087589128029",
+        "repositoryId": "d54e667e-d0bd-4717-aeb0-5ded7b420c85",
+        "repositoryName": "MythicalMysfitsService-Repository",
+        "lastModifiedDate": 1590960696.837,
+        "creationDate": 1590960696.837,
+        "cloneUrlHttp": "https://git-codecommit.us-east-2.amazonaws.com/v1/repos/MythicalMysfitsService-Repository",
+        "cloneUrlSsh": "ssh://git-codecommit.us-east-2.amazonaws.com/v1/repos/MythicalMysfitsService-Repository",
+        "Arn": "arn:aws:codecommit:us-east-2:087589128029:MythicalMysfitsService-Repository"
+    }
+}
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws codebuild create-project --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/code-build-project.json
+{
+    "project": {
+        "name": "MythicalMysfitsServiceCodeBuildProject",
+        "arn": "arn:aws:codebuild:us-east-2:087589128029:project/MythicalMysfitsServiceCodeBuildProject",
+        "source": {
+            "type": "CODECOMMIT",
+            "location": "https://git-codecommit.us-east-2.amazonaws.com/v1/repos/MythicalMysfitsService-Repository",
+            "insecureSsl": false
+        },
+        "artifacts": {
+            "type": "NO_ARTIFACTS",
+            "name": "MythicalMysfitsServiceCodeBuildProject",
+            "packaging": "NONE",
+            "encryptionDisabled": false
+        },
+        "cache": {
+            "type": "NO_CACHE"
+        },
+        "environment": {
+            "type": "LINUX_CONTAINER",
+            "image": "aws/codebuild/java:openjdk-8",
+            "computeType": "BUILD_GENERAL1_SMALL",
+            "environmentVariables": [
+                {
+                    "name": "AWS_ACCOUNT_ID",
+                    "value": "087589128029",
+                    "type": "PLAINTEXT"
+                },
+                {
+                    "name": "AWS_DEFAULT_REGION",
+                    "value": "us-east-2",
+                    "type": "PLAINTEXT"
+                }
+            ],
+            "privilegedMode": true,
+            "imagePullCredentialsType": "CODEBUILD"
+        },
+        "serviceRole": "arn:aws:iam::087589128029:role/MythicalMysfitsServiceCodeBuildServiceRole",
+        "timeoutInMinutes": 60,
+        "queuedTimeoutInMinutes": 480,
+        "encryptionKey": "arn:aws:kms:us-east-2:087589128029:alias/aws/s3",
+        "created": 1590961073.775,
+        "lastModified": 1590961073.775,
+        "badge": {
+            "badgeEnabled": false
+        }
+    }
+}
+
+
+aws codepipeline create-pipeline --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/code-pipeline.json
+{
+    "pipeline": {
+        "name": "MythicalMysfitsServiceCICDPipeline",
+        "roleArn": "arn:aws:iam::087589128029:role/MythicalMysfitsServiceCodePipelineServiceRole",
+        "artifactStore": {
+            "type": "S3",
+            "location": "omercse26-cicd"
+        },
+        "stages": [
+            {
+                "name": "Source",
+                "actions": [
+                    {
+                        "name": "Source",
+                        "actionTypeId": {
+                            "category": "Source",
+                            "owner": "AWS",
+                            "provider": "CodeCommit",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "BranchName": "master",
+                            "RepositoryName": "MythicalMysfitsService-Repository"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "MythicalMysfitsService-SourceArtifact"
+                            }
+                        ],
+                        "inputArtifacts": []
+                    }
+                ]
+            },
+            {
+                "name": "Build",
+                "actions": [
+                    {
+                        "name": "Build",
+                        "actionTypeId": {
+                            "category": "Build",
+                            "owner": "AWS",
+                            "provider": "CodeBuild",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ProjectName": "MythicalMysfitsServiceCodeBuildProject"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "MythicalMysfitsService-BuildArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [
+                            {
+                                "name": "MythicalMysfitsService-SourceArtifact"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Deploy",
+                "actions": [
+                    {
+                        "name": "Deploy",
+                        "actionTypeId": {
+                            "category": "Deploy",
+                            "owner": "AWS",
+                            "provider": "ECS",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ClusterName": "MythicalMysfits-Cluster",
+                            "FileName": "imagedefinitions.json",
+                            "ServiceName": "MythicalMysfits-Service"
+                        },
+                        "outputArtifacts": [],
+                        "inputArtifacts": [
+                            {
+                                "name": "MythicalMysfitsService-BuildArtifact"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "version": 1
+    }
+}
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws ecr set-repository-policy --repository-name mythicalmysfits/service --policy-text file://~/environment/aws-modern-application-workshop/module-2/aws-cli/ecr-policy.json
+{
+    "registryId": "087589128029",
+    "repositoryName": "mythicalmysfits/service",
+    "policyText": "{\n  \"Version\" : \"2008-10-17\",\n  \"Statement\" : [ {\n    \"Sid\" : \"AllowPushPull\",\n    \"Effect\" : \"Allow\",\n    \"Principal\" : {\n      \"AWS\" : \"arn:aws:iam::087589128029:role/MythicalMysfitsServiceCodeBuildServiceRole\"\n    },\n    \"Action\" : [ \"ecr:GetDownloadUrlForLayer\", \"ecr:BatchGetImage\", \"ecr:BatchCheckLayerAvailability\", \"ecr:PutImage\", \"ecr:InitiateLayerUpload\", \"ecr:UploadLayerPart\", \"ecr:CompleteLayerUpload\" ]\n  } ]\n}"
+}
+
+git clone https://git-codecommit.us-east-2.amazonaws.com/v1/repos/MythicalMysfitsService-Repository
+
+
+module 3:
+----------
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws dynamodb create-table --cli-input-json file://~/environment/aws-modern-application-workshop/module-3/aws-cli/dynamodb-table.json
+{
+    "TableDescription": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "GoodEvil",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "LawChaos",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "MysfitId",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "MysfitsTable",
+        "KeySchema": [
+            {
+                "AttributeName": "MysfitId",
+                "KeyType": "HASH"
+            }
+        ],
+        "TableStatus": "CREATING",
+        "CreationDateTime": 1590961600.214,
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 5,
+            "WriteCapacityUnits": 5
+        },
+        "TableSizeBytes": 0,
+        "ItemCount": 0,
+        "TableArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable",
+        "TableId": "a26f1478-9364-4d69-b99e-ca8d40aca0c0",
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "GoodEvilIndex",
+                "KeySchema": [
+                    {
+                        "AttributeName": "GoodEvil",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "MysfitId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "CREATING",
+                "ProvisionedThroughput": {
+                    "NumberOfDecreasesToday": 0,
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                },
+                "IndexSizeBytes": 0,
+                "ItemCount": 0,
+                "IndexArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable/index/GoodEvilIndex"
+            },
+            {
+                "IndexName": "LawChaosIndex",
+                "KeySchema": [
+                    {
+                        "AttributeName": "LawChaos",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "MysfitId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "CREATING",
+                "ProvisionedThroughput": {
+                    "NumberOfDecreasesToday": 0,
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                },
+                "IndexSizeBytes": 0,
+                "ItemCount": 0,
+                "IndexArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable/index/LawChaosIndex"
+            }
+        ]
+    }
+}
+
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws dynamodb describe-table --table-name MysfitsTable
+{
+    "Table": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "GoodEvil",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "LawChaos",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "MysfitId",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "MysfitsTable",
+        "KeySchema": [
+            {
+                "AttributeName": "MysfitId",
+                "KeyType": "HASH"
+            }
+        ],
+        "TableStatus": "ACTIVE",
+        "CreationDateTime": 1590961600.214,
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 5,
+            "WriteCapacityUnits": 5
+        },
+        "TableSizeBytes": 0,
+        "ItemCount": 0,
+        "TableArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable",
+        "TableId": "a26f1478-9364-4d69-b99e-ca8d40aca0c0",
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "LawChaosIndex",
+                "KeySchema": [
+                    {
+                        "AttributeName": "LawChaos",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "MysfitId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "ACTIVE",
+                "ProvisionedThroughput": {
+                    "NumberOfDecreasesToday": 0,
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                },
+                "IndexSizeBytes": 0,
+                "ItemCount": 0,
+                "IndexArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable/index/LawChaosIndex"
+            },
+            {
+                "IndexName": "GoodEvilIndex",
+                "KeySchema": [
+                    {
+                        "AttributeName": "GoodEvil",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "MysfitId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "ACTIVE",
+                "ProvisionedThroughput": {
+                    "NumberOfDecreasesToday": 0,
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                },
+                "IndexSizeBytes": 0,
+                "ItemCount": 0,
+                "IndexArn": "arn:aws:dynamodb:us-east-2:087589128029:table/MysfitsTable/index/GoodEvilIndex"
+            }
+        ]
+    }
+}
+
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws dynamodb batch-write-item --request-items file://~/environment/aws-modern-application-workshop/module-3/aws-cli/populate-dynamodb.json
+{
+    "UnprocessedItems": {}
+}
+ubuntu:~/environment/aws-modern-application-workshop/module-2/app (java) $ aws dynamodb scan --table-name MysfitsTable{
+    "Items": [
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/haetae_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Neutral"
+            },
+            "GoodEvil": {
+                "S": "Good"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Haetae"
+            },
+            "Description": {
+                "S": "Hasla's presence warms every room. For the last 2 billion years, she's made visitors from far-away lands and the galaxy next door feel immediately at ease. Usually it's because of her big heart, but sometimes it's because of the fire she breathes'especially after eating garlic and starlight. Hasla loves togetherness, board games, and asking philosophical questions that leave people pondering the meaning of life as they fall asleep at night."
+            },
+            "MysfitId": {
+                "S": "a901bb08-1985-42f5-bb77-27439ac14300"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/haetae_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "2000000000"
+            },
+            "Name": {
+                "S": "Hasla"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/troll_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Chaotic"
+            },
+            "GoodEvil": {
+                "S": "Evil"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Troll"
+            },
+            "Description": {
+                "S": "Are you looking for a strong companion for raids, someone to throw lightning during a pillage, or just a cuddly buddy who can light a campfire from 200 meters? Look no further than Rujin, a troll mage just coming into his teenage years. Rujin is a loyal companion who loves adventure, camping, and long walks through burning villages. He is great with kids and makes a wonderful guard-troll, especially if you have a couple bridges on your property. Rujin has a bit of a soft spot for gold, so you'll need to keep yours well hidden from him. Since he does keep a hoard on our property, we're waiving the adoption fee!"
+            },
+            "MysfitId": {
+                "S": "b6d16e02-6aeb-413c-b457-321151bb403d"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/troll_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "221"
+            },
+            "Name": {
+                "S": "Rujin"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/mandrake_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Neutral"
+            },
+            "GoodEvil": {
+                "S": "Neutral"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Mandrake"
+            },
+            "Description": {
+                "S": "Do you like long naps in the dirt, vegetable-like appendages, mind-distorting screaming, and a unmatched humanoid-like root system? Look no further, Atlantis is the perfect companion to accompany you down the rabbit hole! Atlantis is rooted in habitual power napping and can unleash a terse warning when awakened. Like all of us, at the end of a long nap, all Atlantis needs is a soothing milk or blood bath to take the edge off. If you're looking to take a trip, this mandrake is your ideal travel companion."
+            },
+            "MysfitId": {
+                "S": "c0684344-1eb7-40e7-b334-06d25ac9268c"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/mandrake_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "100"
+            },
+            "Name": {
+                "S": "Atlantis"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/gorgon_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Neutral"
+            },
+            "GoodEvil": {
+                "S": "Evil"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Gorgon"
+            },
+            "Description": {
+                "S": "Young, fun, and perfectly mischievous, Gorgon is mostly tail. She's currently growing her horns and hoping for wings like those of her high-flying counterparts. In the meantime, she dons an umbrella and waits for gusts of wind to transport her across space-time. She likes to tell jokes in fluent Parseltongue, read the evening news, and shoot fireworks across celestial lines. If you like high-risk, high-reward challenges, Gorgon will be the best pet you never knew you wanted."
+            },
+            "MysfitId": {
+                "S": "da5303ae-5aba-495c-b5d6-eb5c4a66b941"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/gorgon_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "31"
+            },
+            "Name": {
+                "S": "Gretta"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/kraken_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Chaotic"
+            },
+            "GoodEvil": {
+                "S": "Neutral"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Kraken"
+            },
+            "Description": {
+                "S": "Gary loves to have a good time. His motto? 'I just want to dance.' Give Gary a disco ball, a DJ, and a hat that slightly obscures the vision from his top eye, and Gary will dance the year away which, at his age, is like one night in humanoid time. If you're looking for a low-maintenance, high-energy creature companion that never sheds and always shreds, Gary is just the kraken for you."
+            },
+            "MysfitId": {
+                "S": "3f0f196c-4a7b-43af-9e29-6522a715342d"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/kraken_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "2709"
+            },
+            "Name": {
+                "S": "Gary"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/pegasus_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Lawful"
+            },
+            "GoodEvil": {
+                "S": "Good"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Pegasus"
+            },
+            "Description": {
+                "S": "Twilight's personality sparkles like the night sky and is looking for a forever home with a Greek hero or God. While on the smaller side at 14 hands, he is quite adept at accepting riders and can fly to 15,000 feet. Twilight needs a large area to run around in and will need to be registered with the FAA if you plan to fly him above 500 feet. His favorite activities include playing with chimeras, going on epic adventures into battle, and playing with a large inflatable ball around the paddock. If you bring him home, he'll quickly become your favorite little Pegasus."
+            },
+            "MysfitId": {
+                "S": "ac3e95f3-eb40-4e4e-a605-9fdd0224877c"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/pegasus_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "6"
+            },
+            "Name": {
+                "S": "Twilight Glitter"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/dragon_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Chaotic"
+            },
+            "GoodEvil": {
+                "S": "Good"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Dragon"
+            },
+            "Description": {
+                "S": "CoCo wears sunglasses at night. His hobbies include dressing up for casual nights out, accumulating debt, and taking his friends on his back for a terrifying ride through the mesosphere after a long night of revelry, where you pick up the bill, of course. For all his swagger, CoCo has a heart of gold. His loyalty knows no bounds, and once bonded, you've got a wingman (literally) for life."
+            },
+            "MysfitId": {
+                "S": "0e37d916-f960-4772-a25a-01b762b5c1bd"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/dragon_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "501"
+            },
+            "Name": {
+                "S": "CoCo"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/chimera_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Lawful"
+            },
+            "GoodEvil": {
+                "S": "Evil"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Chimera"
+            },
+            "Description": {
+                "S": "Evangeline is the global sophisticate of the mythical world. You'd be hard pressed to find a more seductive, charming, and mysterious companion with a love for neoclassical architecture, and a degree in medieval studies. Don't let her beauty and brains distract you. While her mane may always be perfectly coifed, her tail is ever-coiled and ready to strike. Careful not to let your guard down, or you may just find yourself spiraling into a dazzling downfall of dizzying dimensions."
+            },
+            "MysfitId": {
+                "S": "4e53920c-505a-4a90-a694-b9300791f0ae"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/chimera_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "43"
+            },
+            "Name": {
+                "S": "Evangeline"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/nessie_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Neutral"
+            },
+            "GoodEvil": {
+                "S": "Neutral"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Plesiosaurus"
+            },
+            "Description": {
+                "S": "Nessi is a fun-loving and playful girl who will quickly lock on to your love and nestle into your heart. While shy at first, Nessi is energetic and loves to play with toys such as fishing boats, large sharks, frisbees, errant swimmers, and wand toys. As an aquatic animal, Nessi will need deep water to swim in; at least 15 feet though she prefers 750. Nessi would be a wonderful companion for anyone seeking a loving, 1 ton ball of joy."
+            },
+            "MysfitId": {
+                "S": "a68db521-c031-44c7-b5ef-bfa4c0850e2a"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/nessie_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "75000000"
+            },
+            "Name": {
+                "S": "Nessi"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/cyclops_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Lawful"
+            },
+            "GoodEvil": {
+                "S": "Neutral"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Cyclops"
+            },
+            "Description": {
+                "S": "Naturally needy and tyrannically temperamental, Pauly the infant cyclops is searching for a parental figure to call friend. Like raising any precocious tot, there may be occasional tantrums of thunder, lightning, and 100 decibel shrieking. Sooth him with some Mandrake root and you'll soon wonder why people even bother having human children. Gaze into his precious eye and fall in love with this adorable tyke."
+            },
+            "MysfitId": {
+                "S": "2b473002-36f8-4b87-954e-9a377e0ccbec"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/cyclops_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "2"
+            },
+            "Name": {
+                "S": "Pauly"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/yeti_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Neutral"
+            },
+            "GoodEvil": {
+                "S": "Evil"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Yeti"
+            },
+            "Description": {
+                "S": "While Snowflake is a snowman, the only abomination is that he hasn't been adopted yet. Snowflake is curious, playful, and loves to bound around in the snow. He likes winter hikes, hide and go seek, and all things Christmas. He can get a bit agitated when being scolded or having his picture taken and can occasionally cause devastating avalanches, so we don't recommend him for beginning pet owners. However, with love, care, and a lot of ice, Snowflake will make a wonderful companion."
+            },
+            "MysfitId": {
+                "S": "b41ff031-141e-4a8d-bb56-158a22bea0b3"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/yeti_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "13"
+            },
+            "Name": {
+                "S": "Snowflake"
+            }
+        },
+        {
+            "ThumbImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/phoenix_thumb.png"
+            },
+            "LawChaos": {
+                "S": "Chaotic"
+            },
+            "GoodEvil": {
+                "S": "Good"
+            },
+            "Adopted": {
+                "BOOL": false
+            },
+            "Species": {
+                "S": "Phoenix"
+            },
+            "Description": {
+                "S": "Cole is a loving companion and the perfect starter pet for kids. Cole's tears can fix almost any boo-boo your children may receive (up to partial limb amputation). You never have to worry about your kids accidentally killing him as he'll just be reborn in a fun burst of flame if they do. Even better, Cole has the uncanny ability to force all those around him to tell the truth, so say goodbye to fibs about not eating a cookie before dinner or where your teenager actually went that night. Adopt him today and find out how he will be the perfect family member for you, your children, their children, their children's children, and so on."
+            },
+            "MysfitId": {
+                "S": "33e1fbd4-2fd8-45fb-a42f-f92551694506"
+            },
+            "ProfileImageUri": {
+                "S": "https://www.mythicalmysfits.com/images/phoenix_hover.png"
+            },
+            "Likes": {
+                "N": "0"
+            },
+            "Age": {
+                "N": "1393"
+            },
+            "Name": {
+                "S": "Cole"
+            }
+        }
+    ],
+    "Count": 12,
+    "ScannedCount": 12,
+    "ConsumedCapacity": null
+}
+
+Module 4:
+----------
+
+ubuntu:~/environment/MythicalMysfitsService-Repository (master) $ aws cognito-idp create-user-pool --pool-name MysfitsUserPool --auto-verified-attributes email
+{
+    "UserPool": {
+        "Id": "us-east-2_evsB3m4od",
+        "Name": "MysfitsUserPool",
+        "Policies": {
+            "PasswordPolicy": {
+                "MinimumLength": 8,
+                "RequireUppercase": true,
+                "RequireLowercase": true,
+                "RequireNumbers": true,
+                "RequireSymbols": true,
+                "TemporaryPasswordValidityDays": 7
+            }
+        },
+        "LambdaConfig": {},
+        "LastModifiedDate": 1590965067.3,
+        "CreationDate": 1590965067.3,
+        "SchemaAttributes": [
+            {
+                "Name": "sub",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": false,
+                "Required": true,
+                "StringAttributeConstraints": {
+                    "MinLength": "1",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "given_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "family_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "middle_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "nickname",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "preferred_username",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "profile",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "picture",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "website",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "email",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "email_verified",
+                "AttributeDataType": "Boolean",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false
+            },
+            {
+                "Name": "gender",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "birthdate",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "10",
+                    "MaxLength": "10"
+                }
+            },
+            {
+                "Name": "zoneinfo",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "locale",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "phone_number",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "phone_number_verified",
+                "AttributeDataType": "Boolean",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false
+            },
+            {
+                "Name": "address",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "updated_at",
+                "AttributeDataType": "Number",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "NumberAttributeConstraints": {
+                    "MinValue": "0"
+                }
+            }
+        ],
+        "AutoVerifiedAttributes": [
+            "email"
+        ],
+        "VerificationMessageTemplate": {
+            "DefaultEmailOption": "CONFIRM_WITH_CODE"
+        },
+        "MfaConfiguration": "OFF",
+        "EstimatedNumberOfUsers": 0,
+        "EmailConfiguration": {
+            "EmailSendingAccount": "COGNITO_DEFAULT"
+        },
+        "AdminCreateUserConfig": {
+            "AllowAdminCreateUserOnly": false,
+            "UnusedAccountValidityDays": 7
+        },
+        "Arn": "arn:aws:cognito-idp:us-east-2:087589128029:userpool/us-east-2_evsB3m4od"
+    }
+}
+
+ubuntu:~/environment/MythicalMysfitsService-Repository (master) $ aws cognito-idp create-user-pool-client --user-pool-id us-east-2_evsB3m4od --client-name MysfitsUserPoolClient
+{
+    "UserPoolClient": {
+        "UserPoolId": "us-east-2_evsB3m4od",
+        "ClientName": "MysfitsUserPoolClient",
+        "ClientId": "36l8c4j8oe4dausd1vr9ls4uko",
+        "LastModifiedDate": 1590965968.467,
+        "CreationDate": 1590965968.467,
+        "RefreshTokenValidity": 30,
+        "AllowedOAuthFlowsUserPoolClient": false
+    }
+}
+
+aws apigateway create-vpc-link --name MysfitsApiVpcLink --target-arns arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78 > ~/environment/api-gateway-link-output.json
+
+{
+    "id": "iel5k7",
+    "name": "MysfitsApiVpcLink",
+    "targetArns": [
+        "arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78"
+    ],
+    "status": "PENDING"
+}
+
+
+aws apigateway create-vpc-link --name MysfitsApiVpcLink --target-arns arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78
+
+ubuntu:~/environment/MythicalMysfitsService-Repository (master) $ aws apigateway create-vpc-link --name MysfitsApiVpcLink --target-arns arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78
+{
+    "id": "jrtp9e",
+    "name": "MysfitsApiVpcLink",
+    "targetArns": [
+        "arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78"
+    ],
+    "status": "PENDING"
+}
+
+aws apigateway import-rest-api --parameters endpointConfigurationTypes=REGIONAL --body file://~/environment/aws-modern-application-workshop/module-4/aws-cli/api-swagger.json --fail-on-warnings
+
+
+aws apigateway delete-vpc-link --vpc-link-id jrtp9e
+
+ubuntu:~/environment/MythicalMysfitsService-Repository (master) $ aws apigateway create-vpc-link --name MysfitsApiVpcLink --target-arns arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78
+{
+    "id": "pqd5n4",
+    "name": "MysfitsApiVpcLink",
+    "targetArns": [
+        "arn:aws:elasticloadbalancing:us-east-2:087589128029:loadbalancer/net/mysfits-nlb/df21aa622e015a78"
+    ],
+    "status": "PENDING"
+}
+
+
+aws cloudformation delete-stack --stack-name MythicalMysfitsCoreStack
